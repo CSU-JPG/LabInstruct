@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" id="colorSchemeMeta" content="light">
+<script>
+// Theme bootstrap — runs before first paint to avoid a theme flash
+(function () {
+  var t = 'light';
+  try { t = localStorage.getItem('lab_benchmark_human_theme') === 'dark' ? 'dark' : 'light'; } catch (e) {}
+  document.documentElement.dataset.theme = t;
+  document.getElementById('colorSchemeMeta').content = t;
+})();
+</script>
+<title>LabInstruct 人类评估 · 视频生成质量</title>
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN SYSTEM — LabInstruct Human Eval
+   双主题（浅色默认 · 深色评审室）
+   布局：左侧生成视频 + 右侧单题作答
+   ═══════════════════════════════════════════════════════ */
+:root {
+  color-scheme: light;
+
+  /* Surfaces — cool near-white */
+  --bg:        oklch(0.976 0.004 262);
+  --surface:   oklch(1 0 0);
+  --surface-2: oklch(0.955 0.006 262);
+  --surface-3: oklch(0.918 0.008 262);
+
+  /* Ink */
+  --ink:       oklch(0.20 0.012 264);
+  --ink-muted: oklch(0.42 0.015 262);
+  --ink-faint: oklch(0.47 0.012 260);
+
+  /* Accent — indigo */
+  --accent:         oklch(0.46 0.16 264);
+  --accent-deep:    oklch(0.44 0.17 264);
+  --accent-hover:   oklch(0.38 0.17 264);
+  --accent-subtle:  oklch(0.46 0.16 264 / 0.10);
+  --accent-glow:    oklch(0.50 0.17 264 / 0.28);
+
+  /* Verdicts — yes / no / unjudgable */
+  --yes:            oklch(0.47 0.16 150);
+  --yes-ink:        oklch(0.99 0.005 150);
+  --yes-subtle:     oklch(0.47 0.16 150 / 0.10);
+  --yes-solid:      oklch(0.47 0.16 150);
+  --yes-on-solid:   oklch(0.99 0.005 150);
+  --no:             oklch(0.47 0.18 28);
+  --no-ink:         oklch(0.99 0.005 28);
+  --no-subtle:      oklch(0.47 0.18 28 / 0.10);
+  --no-solid:       oklch(0.47 0.18 28);
+  --no-on-solid:    oklch(0.99 0.005 28);
+  --unk:            oklch(0.52 0.12 72);
+  --unk-ink:        oklch(0.24 0.04 80);
+  --unk-subtle:     oklch(0.52 0.12 72 / 0.12);
+  --unk-solid:      oklch(0.78 0.14 80);
+  --unk-on-solid:   oklch(0.22 0.04 80);
+
+  /* Importance chip */
+  --imp-crit-bg:    oklch(0.58 0.17 28 / 0.13);
+  --imp-crit-ink:   oklch(0.50 0.16 28);
+  --imp-std-bg:     oklch(0.25 0.02 264 / 0.07);
+  --imp-std-ink:    oklch(0.44 0.015 262);
+  --imp-supp-bg:    oklch(0.55 0.13 230 / 0.13);
+  --imp-supp-ink:   oklch(0.45 0.12 230);
+
+  /* Borders & Shadows */
+  --border:        oklch(0.25 0.02 264 / 0.12);
+  --border-light:  oklch(0.25 0.02 264 / 0.085);
+  --border-strong: oklch(0.25 0.02 264 / 0.22);
+  --shadow-sm: 0 1px 2px oklch(0.3 0.02 264 / 0.06);
+  --shadow:    0 1px 3px oklch(0.3 0.02 264 / 0.07), 0 4px 14px oklch(0.3 0.02 264 / 0.05);
+  --shadow-lg: 0 8px 28px oklch(0.3 0.02 264 / 0.12);
+
+  /* Theme-tinted fills */
+  --header-bg:  oklch(0.99 0.002 262 / 0.88);
+  --rail-bg:    oklch(0.955 0.006 262 / 0.7);
+  --panel-tint: oklch(0.25 0.02 264 / 0.025);
+  --hover-fill: oklch(0.25 0.02 264 / 0.045);
+  --chip-bg:    oklch(0.25 0.02 264 / 0.06);
+  --video-bg:   oklch(0.13 0.01 264);
+  --toast-bg:   oklch(1 0 0);
+  --ok-bg:      oklch(0.47 0.16 150 / 0.12);
+  --ok-ink:     oklch(0.40 0.14 150);
+
+  /* Dimension identity colours — one hue per evaluation dimension */
+  --d-scene:  oklch(0.50 0.15 252);
+  --d-object: oklch(0.50 0.13 178);
+  --d-action: oklch(0.50 0.17 290);
+  --d-state:  oklch(0.52 0.17 352);
+  --d-phys:   oklch(0.52 0.15 72);
+  --d-safety: oklch(0.50 0.15 152);
+
+  /* Page decoration — soft violet / teal glow in light mode */
+  --bg-decor:
+    radial-gradient(1000px 460px at 88% -140px, oklch(0.50 0.17 290 / 0.11), transparent 62%),
+    radial-gradient(880px 420px at -12% 6%, oklch(0.50 0.14 200 / 0.09), transparent 60%);
+
+  /* Typography — fixed rem scale, compact tool */
+  --text-xs:   0.75rem;
+  --text-sm:   0.8125rem;
+  --text-base: 0.875rem;
+  --text-md:   1rem;
+  --text-lg:   1.25rem;
+  --text-xl:   1.5rem;
+
+  /* Spacing */
+  --space-xs: 4px;  --space-sm: 8px;   --space: 12px;
+  --space-md: 16px; --space-lg: 24px;  --space-xl: 32px;
+
+  /* Layout */
+  --header-h: 56px;
+  --rail-w:   166px;
+  --page-max: 1320px;
+  --instr-h:  200px;
+
+  /* Semantic z-index */
+  --z-rail: 30; --z-header: 50; --z-modal: 60; --z-toast: 80;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:        oklch(0.165 0.012 264);
+  --surface:   oklch(0.205 0.014 264);
+  --surface-2: oklch(0.245 0.016 262);
+  --surface-3: oklch(0.290 0.018 262);
+
+  --ink:       oklch(0.94 0.006 264);
+  --ink-muted: oklch(0.75 0.012 262);
+  --ink-faint: oklch(0.66 0.012 260);
+
+  --accent:         oklch(0.74 0.13 266);
+  --accent-deep:    oklch(0.56 0.16 268);
+  --accent-hover:   oklch(0.62 0.16 268);
+  --accent-subtle:  oklch(0.74 0.13 266 / 0.14);
+  --accent-glow:    oklch(0.62 0.16 268 / 0.38);
+
+  --yes:            oklch(0.76 0.16 158);
+  --yes-ink:        oklch(0.15 0.020 160);
+  --yes-subtle:     oklch(0.76 0.16 158 / 0.13);
+  --yes-solid:      oklch(0.76 0.16 158);
+  --yes-on-solid:   oklch(0.15 0.020 160);
+  --no:             oklch(0.72 0.18 30);
+  --no-ink:         oklch(0.15 0.020 30);
+  --no-subtle:      oklch(0.72 0.18 30 / 0.13);
+  --no-solid:       oklch(0.72 0.18 30);
+  --no-on-solid:    oklch(0.15 0.020 30);
+  --unk:            oklch(0.82 0.13 82);
+  --unk-ink:        oklch(0.16 0.020 85);
+  --unk-subtle:     oklch(0.82 0.13 82 / 0.13);
+  --unk-solid:      oklch(0.82 0.13 82);
+  --unk-on-solid:   oklch(0.16 0.020 85);
+
+  --imp-crit-bg:    oklch(0.65 0.16 25 / 0.20);
+  --imp-crit-ink:   oklch(0.80 0.14 25);
+  --imp-std-bg:     oklch(1 0 0 / 0.09);
+  --imp-std-ink:    oklch(0.78 0.01 262);
+  --imp-supp-bg:    oklch(0.65 0.13 230 / 0.20);
+  --imp-supp-ink:   oklch(0.80 0.10 230);
+
+  --border:        oklch(1 0 0 / 0.10);
+  --border-light:  oklch(1 0 0 / 0.06);
+  --border-strong: oklch(1 0 0 / 0.18);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.30);
+  --shadow:    0 2px 8px oklch(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 36px oklch(0 0 0 / 0.5);
+
+  --header-bg:  oklch(0.205 0.014 264 / 0.88);
+  --rail-bg:    oklch(0.245 0.016 262 / 0.8);
+  --panel-tint: oklch(1 0 0 / 0.02);
+  --hover-fill: oklch(1 0 0 / 0.05);
+  --chip-bg:    oklch(1 0 0 / 0.07);
+  --video-bg:   oklch(0.05 0.005 264);
+  --toast-bg:   oklch(0.245 0.016 262);
+  --ok-bg:      oklch(0.76 0.16 158 / 0.14);
+  --ok-ink:     oklch(0.80 0.14 158);
+
+  --bg-decor:
+    radial-gradient(1100px 480px at 88% -140px, oklch(0.62 0.15 290 / 0.16), transparent 62%),
+    radial-gradient(900px 440px at -10% 4%, oklch(0.62 0.13 200 / 0.12), transparent 60%);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  background-image: var(--bg-decor, none);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", monospace; }
+
+/* ── shared primitives ── */
+.spacer { flex: 1 1 auto; }
+.hidden { display: none !important; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px;
+  font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.01em;
+  background: var(--chip-bg); color: var(--ink-muted);
+  white-space: nowrap; line-height: 1.6;
+}
+.chip-dim { background: var(--surface-3); color: var(--ink-muted); }
+.chip-imp { display: none; }
+body[data-show-imp="1"] .chip-imp { display: inline-flex; }
+.chip-imp.critical { background: var(--imp-crit-bg); color: var(--imp-crit-ink); }
+.chip-imp.standard { background: var(--imp-std-bg); color: var(--imp-std-ink); }
+.chip-imp.supplementary { background: var(--imp-supp-bg); color: var(--imp-supp-ink); }
+
+/* ── buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 36px; padding: 0 14px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--ink);
+  font-size: var(--text-sm); font-weight: 600;
+  transition: background-color 0.14s var(--ease-out), border-color 0.14s var(--ease-out), color 0.14s var(--ease-out), transform 0.06s var(--ease-out);
+  user-select: none;
+}
+.btn:hover { background: var(--hover-fill); border-color: var(--border-strong); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary {
+  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+  border-color: transparent; color: #fff;
+  box-shadow: 0 1px 2px oklch(0.3 0.02 264 / 0.14), inset 0 1px 0 oklch(1 0 0 / 0.14);
+}
+.btn-primary:hover { background: linear-gradient(180deg, var(--accent-hover), var(--accent-deep)); border-color: transparent; color: #fff; }
+.btn-primary:active { box-shadow: inset 0 1px 2px oklch(0.3 0.02 264 / 0.2); }
+.btn-ghost { background: transparent; }
+.btn-danger-ghost { background: transparent; color: var(--no); border-color: var(--no-solid); }
+.btn-danger-ghost:hover { background: var(--no-subtle); }
+.btn-sm { height: 26px; padding: 0 9px; font-size: 0.72rem; gap: 5px; border-radius: 6px; }
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  color: var(--ink-muted); font-size: var(--text-md);
+  transition: background-color 0.14s var(--ease-out), color 0.14s var(--ease-out);
+}
+.icon-btn:hover { background: var(--hover-fill); color: var(--ink); }
+
+/* ── Header ── */
+.app-header {
+  position: sticky; top: 0; z-index: var(--z-header);
+  display: flex; align-items: center; gap: var(--space);
+  height: var(--header-h); padding: 0 var(--space-md) 0 0;
+  background: var(--header-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-light);
+  max-width: none; margin-right: 24px;
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: none; }
+.brand-ico { font-size: 1.35rem; line-height: 1; }
+.brand-text { min-width: 0; overflow: hidden; }
+.brand-text h1 { margin: 0; font-size: var(--text-sm); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.task-chip-row { display: flex; align-items: center; gap: 6px; margin-left: 4px; flex: 0 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.task-chip-row::-webkit-scrollbar { display: none; }
+.header-actions { display: flex; align-items: center; gap: 6px; margin-left: 10px; flex: none; }
+.theme-btn { width: 34px; height: 34px; border-radius: 8px; font-size: var(--text-md); }
+.theme-btn:hover { background: var(--hover-fill); }
+
+/* Language switch */
+.lang-switch { display: flex; align-items: center; gap: 2px; padding: 2px; background: var(--surface-3); border: 1px solid var(--border); border-radius: 8px; flex: none; }
+.lang-opt {
+  height: 26px; padding: 0 9px; border-radius: 6px;
+  font-size: var(--text-xs); font-weight: 700; color: var(--ink-muted);
+  transition: background-color 0.14s var(--ease-out), color 0.14s var(--ease-out), box-shadow 0.14s var(--ease-out);
+}
+.lang-opt:hover { color: var(--ink); }
+.lang-opt.active { background: var(--surface); color: var(--accent-deep); box-shadow: var(--shadow-sm); }
+
+/* Top progress */
+.progress-mini { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 92px; }
+.progress-mini span { font-size: var(--text-xs); color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.progress-mini-bar { width: 92px; height: 4px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.progress-mini-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), oklch(0.52 0.17 290)); transition: width 0.3s var(--ease-out); }
+
+/* ── page frame: header and shell share one centring axis ── */
+.page { max-width: var(--page-max); margin-inline: auto; }
+
+/* ── Shell / Rail ── */
+.shell { display: flex; align-items: stretch; }
+.task-rail {
+  position: sticky; top: var(--header-h); align-self: flex-start;
+  z-index: var(--z-rail);
+  flex: none; width: var(--rail-w); height: calc(100vh - var(--header-h));
+  overflow-y: auto; padding: 5px 6px;
+  display: flex; flex-direction: column; gap: 5px;
+  background: var(--rail-bg);
+  border-right: 1px solid var(--border-light);
+  scrollbar-width: thin;
+}
+.rail-btn {
+  display: flex; flex-direction: column; align-items: stretch; gap: 5px;
+  padding: 5px 10px; min-height: 44px; border-radius: 9px;
+  color: var(--ink-muted); background: transparent;
+  border: 1px solid transparent; text-align: left;
+  transition: background-color 0.14s var(--ease-out), color 0.14s var(--ease-out), border-color 0.14s var(--ease-out);
+}
+.rail-btn:hover { background: var(--hover-fill); color: var(--ink); }
+.rail-btn.active { background: var(--accent-subtle); color: var(--accent-deep); border-color: var(--accent); }
+.rail-btn .rb-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rail-btn .rb-num {
+  flex: none; width: 20px; height: 20px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+  background: var(--surface-3); color: var(--ink-faint);
+}
+.rail-btn .rb-level { flex: none; margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 999px; background: var(--surface-3); color: var(--ink-faint); }
+.rail-btn .rb-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.rail-btn .rb-bar { flex: none; width: 96px; height: 4px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.rail-btn .rb-bar .fill { display: block; height: 100%; border-radius: 999px; background: var(--ink-faint); opacity: 0.5; transition: width 0.25s var(--ease-out); }
+.rail-btn .rb-pct { flex: none; font-size: var(--text-xs); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-faint); text-align: right; line-height: 1.2; }
+
+/* Status: done / in progress / not started */
+.rail-btn.done .rb-num { background: var(--yes-solid); color: var(--yes-on-solid); }
+.rail-btn.done .rb-bar .fill { background: var(--yes-solid); opacity: 1; }
+.rail-btn.done .rb-pct { color: var(--yes-solid); }
+.rail-btn.partial .rb-num { background: var(--unk-solid); color: var(--unk-on-solid); }
+.rail-btn.partial .rb-bar .fill { background: var(--unk-solid); opacity: 1; }
+.rail-btn.partial .rb-pct { color: var(--unk-solid); }
+.rail-btn.active .rb-num { background: var(--accent-subtle); color: var(--accent-deep); }
+.rail-btn.active .rb-pct { color: var(--accent-deep); }
+
+/* ── Main ── */
+.main-col { flex: 1 1 auto; min-width: 0; padding: var(--space-sm) 24px; display: flex; flex-direction: column; gap: var(--space-md); }
+
+/* Task info header */
+.task-head { display: flex; flex-direction: column; gap: var(--space); }
+.head-compare {
+  height: var(--instr-h);
+  border: 1px solid var(--border); border-radius: 14px;
+  background: var(--surface); box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.hc-top {
+  display: flex; align-items: center; gap: var(--space-sm);
+  padding: 8px 14px 7px; border-bottom: 1px solid var(--border-light);
+  flex: none;
+}
+.hc-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; background: linear-gradient(90deg, var(--accent), oklch(0.52 0.17 290)); }
+.hc-title { font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.02em; }
+.hc-scroll {
+  flex: 1; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: var(--space-sm) 14px;
+}
+.head-title { margin: 0; font-size: var(--text-base); font-weight: 700; letter-spacing: -0.015em; line-height: 1.35; text-wrap: balance; }
+.head-prompt { margin: 0; font-size: var(--text-xs); color: var(--ink-muted); line-height: 1.6; text-wrap: pretty; }
+
+/* Evaluation grid: video left, questions right (equal height) */
+.eval-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 460px); gap: 8px; align-items: stretch; }
+
+/* ── model card row: its own row above the video and question card ── */
+.model-row {
+  display: flex; align-items: center; gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding: var(--space-sm);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.model-tabs { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; min-width: 0; }
+.model-tab-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 38px; padding: 0 13px; border-radius: 10px; flex: 0 0 auto;
+  font-size: var(--text-sm); font-weight: 600; color: var(--ink-muted);
+  border: 1px solid var(--border); background: var(--surface-2);
+  transition: background-color 0.14s var(--ease-out), color 0.14s var(--ease-out), border-color 0.14s var(--ease-out), box-shadow 0.14s var(--ease-out);
+}
+.model-tab-btn:hover { background: var(--hover-fill); color: var(--ink); border-color: var(--border-strong); }
+.model-tab-btn.active { background: var(--accent-subtle); color: var(--accent-deep); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-subtle); }
+.model-tab-btn .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--border-strong); flex: none; }
+.model-tab-btn .dot.done { background: var(--yes-solid); }
+.model-tab-btn .dot.partial { background: var(--unk-solid); }
+.model-tab-btn .mt-count { font-size: var(--text-xs); opacity: 0.8; font-variant-numeric: tabular-nums; background: var(--chip-bg); padding: 1px 7px; border-radius: 999px; }
+.src-btn { margin-left: auto; flex: none; }
+.src-btn .ico { font-size: 0.9em; }
+
+/* ── video card (a direct grid child; align-items: stretch keeps it level with the question card) ── */
+.video-card {
+  position: relative; border-radius: 12px; overflow: hidden;
+  background: var(--video-bg);
+  box-shadow: var(--shadow);
+  width: 100%; min-width: 0;
+  align-self: start; /* video height follows its own aspect ratio, not the question text length */
+  display: flex; flex-direction: column;
+}
+.vc-stage { position: relative; flex: none; display: flex; align-items: center; justify-content: center; background: #000; }
+.video-card video { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+.video-card .video-fallback {
+  display: none; padding: var(--space-md); color: var(--ink-faint);
+  font-size: var(--text-sm); text-align: center;
+}
+.video-card.missing video { display: none; }
+.video-card.missing .video-fallback { display: block; }
+
+/* ── question panel ── */
+.question-panel { position: sticky; top: calc(var(--header-h) + var(--space-lg)); min-width: 0; display: flex; }
+.q-card {
+  flex: 1; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: var(--shadow);
+  padding: var(--space-lg); display: flex; flex-direction: column;
+}
+.q-inner { flex: 1; display: flex; flex-direction: column; gap: var(--space-md); min-height: 0; }
+.q-head { display: flex; flex-direction: column; gap: var(--space-sm); }
+.q-progress { display: flex; flex-direction: column; gap: 6px; }
+.q-pos { font-size: var(--text-sm); color: var(--ink-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.q-pos b { color: var(--ink); font-size: var(--text-md); }
+.q-progress-bar { height: 5px; border-radius: 999px; background: var(--surface-3); overflow: hidden; position: relative; }
+.q-progress-fill { height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.3s var(--ease-out); }
+.q-progress-cursor {
+  position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent-deep);
+  transition: left 0.3s var(--ease-out); opacity: 0.85;
+}
+.q-tags { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.q-text { margin: 0; font-size: var(--text-md); font-weight: 600; line-height: 1.5; color: var(--ink); text-wrap: pretty; }
+
+/* Dimension identity colour: chip, progress bar and caret follow the dimension hue */
+.q-card[data-dim="scene"]  { --dim: var(--d-scene); }
+.q-card[data-dim="object"] { --dim: var(--d-object); }
+.q-card[data-dim="action"] { --dim: var(--d-action); }
+.q-card[data-dim="state"]  { --dim: var(--d-state); }
+.q-card[data-dim="phys"]   { --dim: var(--d-phys); }
+.q-card[data-dim="safety"] { --dim: var(--d-safety); }
+.q-card .chip-dim[data-dim] { background: color-mix(in oklch, var(--dim) 13%, transparent); color: var(--dim); }
+.q-card[data-dim] .q-progress-fill { background: linear-gradient(90deg, var(--dim), color-mix(in oklch, var(--dim) 72%, var(--surface-3))); }
+.q-card[data-dim] .q-progress-cursor { background: var(--dim); }
+
+/* Answer area */
+.answer-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); }
+.ans-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 6px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  transition: background-color 0.13s var(--ease-out), border-color 0.13s var(--ease-out), color 0.13s var(--ease-out), box-shadow 0.13s var(--ease-out), transform 0.07s var(--ease-out);
+}
+.ans-btn:hover { border-color: var(--border-strong); background: var(--hover-fill); }
+.ans-btn:active { transform: scale(0.985); }
+.ans-btn .ans-main { font-size: var(--text-md); font-weight: 700; line-height: 1.2; }
+.ans-btn.yes.selected { background: var(--yes-solid); border-color: var(--yes-solid); color: var(--yes-on-solid); box-shadow: 0 0 0 3px var(--yes-subtle); }
+.ans-btn.no.selected { background: var(--no-solid); border-color: var(--no-solid); color: var(--no-on-solid); box-shadow: 0 0 0 3px var(--no-subtle); }
+.ans-btn.unjudgable.selected { background: var(--unk-solid); border-color: var(--unk-solid); color: var(--unk-on-solid); box-shadow: 0 0 0 3px var(--unk-subtle); }
+
+/* Question-card footer navigation */
+.q-foot { display: flex; align-items: center; gap: var(--space); padding-top: var(--space-sm); border-top: 1px solid var(--border-light); margin-top: auto; }
+.autoadv { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); color: var(--ink-muted); cursor: pointer; user-select: none; }
+.autoadv input { accent-color: var(--accent); }
+.q-pos-static { font-size: var(--text-xs); color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+/* ── bottom task navigation ── */
+.task-nav {
+  display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap;
+  padding-top: var(--space-md); border-top: 1px solid var(--border-light);
+}
+.status-row { display: inline-flex; align-items: center; gap: 7px; font-size: var(--text-xs); color: var(--ink-muted); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yes-solid); }
+.status-dot.dirty { background: var(--unk-solid); }
+.persist-badge { font-size: var(--text-xs); padding: 1px 9px; border-radius: 999px; border: 1px solid var(--unk-solid); color: var(--unk-ink); background: var(--unk-subtle); white-space: nowrap; }
+.persist-badge.ok { border-color: var(--yes-solid); color: var(--yes-ink); background: var(--yes-subtle); }
+.hotkey-hint { font-size: var(--text-xs); color: var(--ink-faint); }
+
+/* ── source video modal ── */
+.src-dialog {
+  border: 0; border-radius: 14px; padding: 0; overflow: hidden;
+  background: var(--surface); color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  width: min(92vw, 920px);
+}
+.src-dialog::backdrop { background: oklch(0.08 0.01 264 / 0.55); backdrop-filter: blur(2px); }
+.src-head { display: flex; align-items: center; gap: var(--space); padding: 12px 16px; border-bottom: 1px solid var(--border-light); }
+.src-title { font-size: var(--text-sm); font-weight: 700; }
+.src-dialog video { display: block; width: 100%; max-height: 70vh; object-fit: contain; background: #000; }
+.src-note { padding: 10px 16px 14px; font-size: var(--text-xs); color: var(--ink-faint); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
+  z-index: var(--z-toast);
+  padding: 9px 16px; border-radius: 10px;
+  background: var(--toast-bg); color: var(--ink);
+  font-size: var(--text-sm); font-weight: 600;
+  box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+  max-width: 80vw;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.warn { border-color: var(--unk-solid); color: var(--unk-ink); background: var(--unk-subtle); }
+.toast.ok { border-color: var(--yes-solid); color: var(--ok-ink); background: var(--ok-bg); }
+
+/* ── question transition (direction aware: forward / backward slide) ── */
+@keyframes qOutF { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-20px); } }
+@keyframes qOutB { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(20px); } }
+@keyframes qInF  { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: none; } }
+@keyframes qInB  { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: none; } }
+.q-inner.q-out-f { animation: qOutF 0.14s var(--ease-out) forwards; pointer-events: none; }
+.q-inner.q-out-b { animation: qOutB 0.14s var(--ease-out) forwards; pointer-events: none; }
+.q-inner.q-in-f  { animation: qInF 0.22s var(--ease-out); }
+.q-inner.q-in-b  { animation: qInB 0.22s var(--ease-out); }
+
+/* Fade the video in when its source changes (model or task switch) */
+@keyframes vidIn { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: none; } }
+.video-card.vid-swap { animation: vidIn 0.3s var(--ease-out); }
+
+/* ── responsive ── */
+@media (max-width: 960px) {
+  .shell { flex-direction: column; }
+  .task-rail {
+    position: static; width: 100%; height: auto;
+    flex-direction: row; overflow-x: auto; overflow-y: hidden;
+    padding: var(--space-sm); gap: 6px;
+    border-right: 0; border-bottom: 1px solid var(--border-light);
+  }
+  .rail-btn { min-width: 46px; flex: none; }
+  .rail-btn .rb-bar { flex: 0 1 auto; } /* the bar may shrink on narrow buttons so "100%" cannot overflow */
+  .eval-grid { grid-template-columns: 1fr; }
+  .question-panel { position: static; }
+  .main-col { padding: var(--space-sm); }
+}
+@media (max-width: 640px) {
+  .progress-mini { min-width: 0; }
+  .progress-mini-bar { width: 64px; }
+  .src-btn { padding: 0 10px; }
+}
+
+/* ── reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body data-show-imp="1">
+
+<div class="page">
+<div class="app-header">
+  <div class="brand">
+    <span class="brand-ico">🧪</span>
+    <div class="brand-text">
+      <h1 data-i18n="brandTitle">LabInstruct 人类评估</h1>
+    </div>
+  </div>
+
+  <div class="task-chip-row" id="headerTaskChips" data-i18n-aria="headerChipsAria" aria-label="当前任务"></div>
+
+  <span class="spacer"></span>
+
+  <div class="header-actions">
+    <button class="btn btn-danger-ghost btn-sm" id="btnClearAll" type="button" data-i18n="clearAll">全部清除</button>
+    <button class="btn btn-danger-ghost btn-sm" id="btnClearTask" type="button" data-i18n="clearTask">清除本任务</button>
+    <button class="btn btn-ghost btn-sm" id="btnExportRatings" type="button" data-i18n="exportRatings">📤 导出json评分</button>
+    <button class="btn btn-ghost btn-sm" id="btnImportRatings" type="button" data-i18n="importRatings">📥 导入json评分</button>
+    <input type="file" id="importRatingsInput" accept=".json,application/json" hidden>
+  </div>
+
+  <div class="lang-switch" id="langToggle" role="group" aria-label="Language">
+    <button class="lang-opt active" data-lang="zh" type="button">中</button>
+    <button class="lang-opt" data-lang="en" type="button">EN</button>
+  </div>
+
+  <button class="theme-btn" id="themeToggle" title="切换浅色 / 深色主题">🌙</button>
+
+  <div class="progress-mini">
+    <span id="progressText">0 / 20 已评</span>
+    <div class="progress-mini-bar" role="progressbar" data-i18n-aria="headerProgressAria" aria-label="任务完成进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="progress-mini-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="task-rail" id="taskRail" data-i18n-aria="railAriaStatic" aria-label="任务导航"></aside>
+
+  <main class="main-col">
+    <!-- task info header -->
+    <div class="task-head" id="taskHead"></div>
+
+    <!-- model card row: above the video and question card, all models visible, no horizontal scroll -->
+    <div class="model-row">
+      <div class="model-tabs" id="modelTabs" role="tablist" data-i18n-aria="modelTabsAria" aria-label="模型切换"></div>
+      <button class="btn btn-ghost src-btn" id="srcBtn" type="button"><span class="ico">▶</span> <span data-i18n="srcBtn">观看源视频</span></button>
+    </div>
+
+    <!-- evaluation grid: video left / questions right -->
+    <div class="eval-grid">
+      <div class="video-card" id="videoCard">
+        <div class="vc-stage" id="vcStage"></div>
+      </div>
+
+      <section class="question-panel" data-i18n-aria="qCardAria" aria-label="问题作答">
+        <article class="q-card" tabindex="-1" id="qCard">
+          <div class="q-inner" id="qInner">
+            <header class="q-head" id="qHead"></header>
+            <p class="q-text" id="qText"></p>
+            <div class="answer-group" id="answerGroup" role="radiogroup" data-i18n-aria="answerGroupAria" aria-label="答案"></div>
+          </div>
+          <footer class="q-foot">
+            <button class="btn btn-ghost" id="qPrev" type="button">← 上一题</button>
+            <label class="autoadv"><input type="checkbox" id="autoAdvChk" checked> <span data-i18n="autoadvLabel">自动下一题</span></label>
+            <span class="spacer"></span>
+            <span class="q-pos-static" id="qPosStatic"></span>
+            <button class="btn btn-primary" id="qNext" type="button">下一题 →</button>
+          </footer>
+        </article>
+      </section>
+    </div>
+
+    <!-- bottom task navigation -->
+    <div class="task-nav">
+      <button class="btn btn-ghost" id="btnPrev" type="button" data-i18n="prevTask">← 上一任务</button>
+      <button class="btn btn-ghost" id="btnNext" type="button" data-i18n="nextTask">下一任务 →</button>
+      <span class="status-row"><span class="status-dot" id="statusDot"></span><span id="saveStatus">自动保存已开启</span><span class="persist-badge" id="persistBadge" role="status"></span></span>
+      <span class="spacer"></span>
+      <span class="hotkey-hint" data-i18n="hotkeyHint">快捷键：← / → 上一题·下一题　·　1 / 2 / 3 作答　·　, / . 切换模型</span>
+    </div>
+  </main>
+</div>
+</div>
+
+<!-- source video modal -->
+<dialog class="src-dialog" id="srcModal" aria-labelledby="srcTitle">
+  <div class="src-head">
+    <div class="src-title" id="srcTitle" data-i18n="srcModalTitle">源视频</div>
+    <button class="icon-btn" id="srcClose" data-i18n-aria="closeAria" aria-label="关闭弹窗">✕</button>
+  </div>
+  <video id="srcVideo" controls preload="metadata" controlsList="nodownload"></video>
+  <div class="src-note" data-i18n="srcNote">这是生成任务的原始实验片段，供对照生成结果。关闭弹窗后播放会自动暂停。</div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  // ═══════════════════════════════════════════
+  // i18n (single-language zh / EN switch)
+  // ═══════════════════════════════════════════
+  const LANG_KEY = 'lab_benchmark_human_lang';
+
+  // data.js stores the level as "L1" / "L2" while the prose and the paper's
+  // figures write "Level 1" / "Level 2". Only the display prefix is stripped
+  // here; the internal field value is left untouched.
+  const levelNumber = (l) => String(l == null ? '' : l).replace(/^L(?=\d)/i, '');
+
+  // discipline is an underscored lowercase value ("agronomy",
+  // "materials_science"), which would render as "Subject · agronomy" /
+  // "Subject · materials_science". Capitalise each word and split on
+  // underscores to get "Agronomy" / "Materials Science". Text that is already
+  // display-ready (the Chinese labels) is unaffected.
+  const titleCase = (s) => String(s == null ? '' : s)
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(' ');
+
+  const I18N = {
+    zh: {
+      brandTitle: 'LabInstruct 人类评估',
+      docTitle: 'LabInstruct 人类评估 · 视频生成质量',
+      instrLabel: '生成指令',
+      headerProgressAria: '任务完成进度',
+      srcBtn: '观看源视频',
+      srcModalTitle: '源视频',
+      srcNote: '这是生成任务的原始实验片段，供对照生成结果。关闭弹窗后播放会自动暂停。',
+      closeAria: '关闭弹窗',
+      autoadvLabel: '自动下一题',
+      hotkeyHint: '快捷键：← / → 上一题·下一题　·　1 / 2 / 3 作答　·　, / . 切换模型',
+      prevTask: '← 上一任务',
+      nextTask: '下一任务 →',
+      clearTask: '清除本任务',
+      clearAll: '全部清除',
+      exportRatings: '📤 导出json评分',
+      importRatings: '📥 导入json评分',
+      answerGroupAria: '答案',
+      qCardAria: '问题作答',
+      railAriaStatic: '任务导航',
+      headerChipsAria: '当前任务',
+      modelTabsAria: '模型切换',
+      ratedProgress: (done, total) => `${done} / ${total} 已评`,
+      railAria: (i, lvl, rated, total) => `任务 ${i + 1}（${lvl}），完成 ${rated}/${total}`,
+      chipTask: (i) => `任务 #${i + 1}`,
+      chipSubject: (s) => `学科 · ${s}`,
+      chipLevel: (l) => `Level ${levelNumber(l)}`,
+      qPos: (q, n, rated) => `第 <b>${q}</b> / ${n} 题 · 本模型已答 <b>${rated}</b> / ${n}`,
+      dimLabel: (d) => ({ 'Scene Consistency': '场景一致性', 'Object Consistency': '物体一致性', 'Action Fidelity': '动作保真度', 'State Correctness': '状态正确性', 'Physical Plausibility': '物理合理性', 'Visual Safety': '视觉安全性' }[d] || d),
+      impLabel: { critical: '关键', standard: '标准', supplementary: '补充' },
+      // Agreed 2026-09-13: the three verdicts are fixed as 是 / 否 / 无法判断
+      // (English Yes / No / Unjudgeable), matching \textsc{Yes} / \textsc{No} /
+      // \textsc{Unjudgeable} in the paper. The internal keys yes / no /
+      // unjudgable are the stored rating field and must never be renamed.
+      ans: { yes: '是', no: '否', unjudgable: '无法判断' },
+      prevQuestion: '← 上一题',
+      prevModelEnd: '← 上一模型末题',
+      prevTaskEnd: '← 上一任务末题',
+      nextQuestion: '下一题 →',
+      nextModel: '下一模型 →',
+      nextTask: '下一任务 →',
+      lastQuestion: '已是末题',
+      saveDone: '✓ 本任务已完成',
+      savePartial: (rated, total) => `已答 ${rated}/${total} · 自动保存`,
+      saveClean: '自动保存已开启',
+      ratingsExported: '评分已导出（ratings.json）',
+      ratingsImported: (n) => `已导入 ${n} 条评分`,
+      importInvalid: '导入失败：不是有效的评分文件',
+      taskCleared: '本任务已清除',
+      allCleared: '已全部清除',
+      lastQToast: '已经是最后一个问题',
+      firstQToast: '已经是第一个问题',
+      saveFail: '⚠ 无法保存：localStorage 不可用',
+      storageUnavail: 'localStorage 不可用',
+      persistServer: '● 已连接本地服务器 · 评分自动保存至文件',
+      persistHttpFallback: '● 未连接本地服务器 · 评分暂存于浏览器',
+      persistLocal: '● 浏览器缓存模式',
+      confirmClearTask: (i, title) => `清除任务 #${i + 1}（${title}）的全部作答？`,
+      confirmClearAll: '清除全部任务的全部作答？此操作不可撤销。',
+      dataError: '错误：未加载到 data.js。请确认已运行 <code>node build_data.mjs</code> 生成 data.js。',
+      videoMissing: '⚠ 视频缺失',
+      srcTitleFmt: (title) => `源视频 · ${title}`,
+    },
+    en: {
+      brandTitle: 'LabInstruct Human Evaluation',
+      docTitle: 'LabInstruct Human Evaluation · Video Generation Quality',
+      instrLabel: 'Generation Instruction',
+      headerProgressAria: 'Task completion',
+      srcBtn: 'Watch source',
+      srcModalTitle: 'Source video',
+      srcNote: 'This is the original experiment clip used to generate the task. Playback pauses when the dialog closes.',
+      closeAria: 'Close dialog',
+      autoadvLabel: 'Auto advance',
+      hotkeyHint: 'Shortcuts: ← / → prev·next Q　·　1 / 2 / 3 answer　·　, / . switch model',
+      prevTask: '← Prev task',
+      nextTask: 'Next task →',
+      clearTask: 'Clear task',
+      clearAll: 'Clear all',
+      exportRatings: '📤 Export ratings',
+      importRatings: '📥 Import ratings',
+      answerGroupAria: 'Answer',
+      qCardAria: 'Question',
+      railAriaStatic: 'Task navigation',
+      headerChipsAria: 'Current task',
+      modelTabsAria: 'Switch model',
+      ratedProgress: (done, total) => `${done} / ${total} rated`,
+      railAria: (i, lvl, rated, total) => `Task ${i + 1} (${lvl}), rated ${rated}/${total}`,
+      chipTask: (i) => `Task #${i + 1}`,
+      chipSubject: (s) => `Subject · ${s}`,
+      chipLevel: (l) => `Level ${levelNumber(l)}`,
+      qPos: (q, n, rated) => `Q <b>${q}</b> / ${n} · this model answered <b>${rated}</b> / ${n}`,
+      dimLabel: (d) => d,
+      impLabel: { critical: 'Critical', standard: 'Standard', supplementary: 'Supplementary' },
+      // Aligned with the Chinese UI and the paper: Yes / No / Unjudgeable
+      ans: { yes: 'Yes', no: 'No', unjudgable: 'Unjudgeable' },
+      prevQuestion: '← Prev',
+      prevModelEnd: '← Prev model',
+      prevTaskEnd: '← Prev task',
+      nextQuestion: 'Next →',
+      nextModel: 'Next model →',
+      nextTask: 'Next task →',
+      lastQuestion: 'Last question',
+      saveDone: '✓ Task complete',
+      savePartial: (rated, total) => `Rated ${rated}/${total} · auto-save`,
+      saveClean: 'Auto-save on',
+      ratingsExported: 'Ratings exported (ratings.json)',
+      ratingsImported: (n) => `Imported ${n} ratings`,
+      importInvalid: 'Import failed: not a valid ratings file',
+      taskCleared: 'Task cleared',
+      allCleared: 'All cleared',
+      lastQToast: 'Already at the last question',
+      firstQToast: 'Already at the first question',
+      saveFail: '⚠ Cannot save: localStorage unavailable',
+      storageUnavail: 'localStorage unavailable',
+      persistServer: '● Connected to local server · ratings saved to file',
+      persistHttpFallback: '● Local server not connected · ratings kept in browser',
+      persistLocal: '● Browser storage mode',
+      confirmClearTask: (i, title) => `Clear all answers for task #${i + 1} (${title})?`,
+      confirmClearAll: 'Clear all answers for all tasks? This cannot be undone.',
+      dataError: 'Error: data.js not loaded. Please run <code>node build_data.mjs</code> to generate data.js.',
+      videoMissing: '⚠ Video missing',
+      srcTitleFmt: (title) => `Source video · ${title}`,
+    },
+  };
+  let lang = 'zh';
+  try { lang = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh'; } catch (e) {}
+  let L = I18N[lang];
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function applyStaticLang() {
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const v = L[el.dataset.i18n];
+      if (typeof v === 'string') el.textContent = v;
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+      const v = L[el.dataset.i18nAria];
+      if (typeof v === 'string') el.setAttribute('aria-label', v);
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+      const v = L[el.dataset.i18nTitle];
+      if (typeof v === 'string') el.setAttribute('title', v);
+    });
+  }
+  function updateLangSwitch() {
+    document.querySelectorAll('.lang-opt').forEach((b) => b.classList.toggle('active', b.dataset.lang === lang));
+  }
+  function setLang(l) {
+    lang = l;
+    L = I18N[l];
+    document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
+    document.title = L.docTitle;
+    try { localStorage.setItem(LANG_KEY, l); } catch (e) {}
+    applyStaticLang();
+    updateLangSwitch();
+    setPersistBadge(serverMode ? 'ok' : IS_HTTP ? 'fallback' : 'local');
+    renderAll();
+  }
+  // Language selection for data: prefer zh, fall back to English
+  const titleOf = (t) => lang === 'zh' ? (t.titleCn || t.title) : t.title;
+  const promptOf = (t) => lang === 'zh' ? (t.promptForGenCn || t.promptForGen) : t.promptForGen;
+  const questionOf = (it) => lang === 'zh' ? (it.questionCn || it.question) : it.question;
+
+  // ═══════════════════════════════════════════
+  // Data and state
+  // ═══════════════════════════════════════════
+  const S = window.SURVEY_DATA;
+  if (!S || !S.tasks || !S.tasks.length) {
+    document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif">' + L.dataError + '</div>';
+    return;
+  }
+
+  const MODELS = S.models;
+  const TASKS = S.tasks;
+  const DIMENSIONS = ['Scene Consistency', 'Object Consistency', 'Action Fidelity', 'State Correctness', 'Physical Plausibility', 'Visual Safety'];
+
+  const STORAGE_KEY = 'lab_benchmark_human_survey_v1';
+  const THEME_KEY = 'lab_benchmark_human_theme';
+  const AUTOADV_KEY = 'lab_benchmark_human_autoadv';
+
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (id) => document.getElementById(id);
+
+  let ratings = {};          // { taskId: { modelId: { qaId: 'yes'|'no'|'unjudgable' } } }
+  let curTask = 0;
+  let curModel = 0;
+  let curQ = 0;
+  let autoAdvance = true;
+  let _toastTimer = null;
+
+  const task = () => TASKS[curTask];
+  const model = () => MODELS[curModel];
+  const items = () => task().items;
+
+  // ═══════════════════════════════════════════
+  // Persistence
+  // ═══════════════════════════════════════════
+  // Server mode (`node server.mjs`, then visit http://localhost): ratings go to
+  // human_eval/ratings.json, which OneDrive keeps in sync so judging can resume
+  // on another machine. Over file:// it falls back to browser localStorage.
+  const IS_HTTP = (location.protocol === 'http:' || location.protocol === 'https:');
+  let serverMode = false;
+
+  async function detectServer() {
+    if (!IS_HTTP) { serverMode = false; return; }
+    try {
+      const res = await fetch('/__api__/ping', { cache: 'no-store' });
+      serverMode = res.ok;
+    } catch (e) { serverMode = false; }
+  }
+
+  // Merge two rating sets: the server copy wins, localStorage fills in entries the server lacks (for migrating old data)
+  function mergeRatings(local, server) {
+    const merged = {};
+    for (const tid of new Set([...Object.keys(server), ...Object.keys(local)])) {
+      const ls = server[tid], ll = local[tid];
+      if (!ls || typeof ls !== 'object' || Array.isArray(ls)) { merged[tid] = ll ?? ls; continue; }
+      if (!ll || typeof ll !== 'object' || Array.isArray(ll)) { merged[tid] = ls; continue; }
+      const m = {};
+      for (const mid of new Set([...Object.keys(ls), ...Object.keys(ll)])) {
+        const ms = ls[mid], ml = ll[mid];
+        if (!ms || typeof ms !== 'object' || Array.isArray(ms)) { m[mid] = ml ?? ms; continue; }
+        if (!ml || typeof ml !== 'object' || Array.isArray(ml)) { m[mid] = ms; continue; }
+        m[mid] = Object.assign({}, ml, ms); // 服务器优先，local 补缺
+      }
+      merged[tid] = m;
+    }
+    return merged;
+  }
+
+  async function loadRatings() {
+    if (IS_HTTP) {
+      try {
+        const res = await fetch('/__api__/ratings', { cache: 'no-store' });
+        if (res.ok) {
+          let srv = {};
+          try { const j = await res.json(); if (j && typeof j === 'object' && !Array.isArray(j)) srv = normalizeImported(j); } catch (e) {}
+          let local = {};
+          try { const raw = localStorage.getItem(STORAGE_KEY); local = raw ? JSON.parse(raw) : {}; local = normalizeImported(local); } catch (e) {}
+          const srvEmpty = !Object.keys(srv).length;
+          ratings = mergeRatings(local, srv);
+          // server file empty but the browser has old ratings -> migrate them in
+          if (srvEmpty && Object.keys(local).length) saveRatings();
+          return;
+        }
+      } catch (e) {}
+      serverMode = false;
+    }
+    try { const raw = localStorage.getItem(STORAGE_KEY); ratings = normalizeImported(raw ? JSON.parse(raw) : {}); } catch (e) { ratings = {}; }
+  }
+
+  let _svBusy = false, _svPending = null;
+  function saveRatings() {
+    // Use the same layout on disk and in the local cache as on export (each qa carries discipline/domain/dimension/importance/answer)
+    const json = buildExportJSON();
+    // Always write the local cache (a fallback in server mode, the primary store over file://)
+    try { localStorage.setItem(STORAGE_KEY, json); }
+    catch (e) { if (!serverMode) toast(L.saveFail, 'warn'); }
+    if (!serverMode) return;
+    if (_svBusy) { _svPending = json; return; }
+    sendRatings(json);
+  }
+  function sendRatings(json) {
+    _svBusy = true;
+    fetch('/__api__/ratings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: json })
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); setPersistBadge('ok'); })
+      .catch((e) => { console.error('save to server failed', e); setPersistBadge('fallback'); })
+      .finally(() => {
+        _svBusy = false;
+        if (_svPending) { const p = _svPending; _svPending = null; sendRatings(p); }
+      });
+  }
+  function setPersistBadge(state) {
+    const el = $('persistBadge');
+    if (!el) return;
+    el.dataset.state = state;
+    el.textContent = state === 'ok' ? L.persistServer : state === 'fallback' ? L.persistHttpFallback : L.persistLocal;
+  }
+  function ensureCell(tid, mid) { if (!ratings[tid]) ratings[tid] = {}; if (!ratings[tid][mid]) ratings[tid][mid] = {}; }
+
+  // ═══════════════════════════════════════════
+  // Stats helpers
+  // ═══════════════════════════════════════════
+  function modelRated(tid, mid) {
+    const r = ratings[tid] && ratings[tid][mid];
+    if (!r) return 0;
+    const t = TASKS.find((x) => x.id === tid);
+    return t.items.filter((it) => r[it.qa_id] != null).length;
+  }
+  function modelTotal(tid) { return TASKS.find((x) => x.id === tid).items.length; }
+  function modelDone(tid, mid) { return modelRated(tid, mid) === modelTotal(tid); }
+  function taskDone(tid) { return MODELS.every((m) => modelDone(tid, m.id)); }
+  function answeredValue(tid, mid, qaId) { const r = ratings[tid] && ratings[tid][mid]; return r ? (r[qaId] ?? null) : null; }
+  function firstUnratedQ() {
+    const t = items(), r = ratings[task().id] && ratings[task().id][model().id] || {};
+    for (let i = 0; i < t.length; i++) if (r[t[i].qa_id] == null) return i;
+    return 0;
+  }
+
+  function dimScore(tid, mid, dim) {
+    const r = ratings[tid] && ratings[tid][mid];
+    if (!r) return null;
+    const t = TASKS.find((x) => x.id === tid);
+    const qs = t.items.filter((it) => it.dimension === dim && r[it.qa_id] != null);
+    if (!qs.length) return null;
+    const yes = qs.filter((it) => r[it.qa_id] === 'yes').length;
+    return 10 * yes / qs.length;
+  }
+  function overallCompletion(tid, mid) {
+    const r = ratings[tid] && ratings[tid][mid];
+    if (!r) return null;
+    const t = TASKS.find((x) => x.id === tid);
+    if (t.items.some((it) => r[it.qa_id] == null)) return null;
+    const critOk = t.items.filter((it) => it.importance === 'critical').every((it) => r[it.qa_id] === 'yes');
+    const dimsOk = DIMENSIONS.every((d) => { const s = dimScore(tid, mid, d); return s !== null && s >= 6; });
+    return critOk && dimsOk;
+  }
+  // ═══════════════════════════════════════════
+  // Rendering
+  // ═══════════════════════════════════════════
+  function renderHeader() {
+    const done = TASKS.filter((t) => taskDone(t.id)).length;
+    $('progressText').textContent = L.ratedProgress(done, TASKS.length);
+    const pct = Math.round(done / TASKS.length * 100);
+    $('progressFill').style.width = pct + '%';
+    const bar = document.querySelector('.progress-mini-bar');
+    bar.setAttribute('aria-valuenow', String(pct));
+  }
+
+  function renderRail() {
+    const rail = $('taskRail');
+    rail.innerHTML = TASKS.map((t, i) => {
+      const total = t.items.length;
+      let rated = 0;
+      MODELS.forEach((m) => { rated += modelRated(t.id, m.id); });
+      const allTotal = total * MODELS.length;
+      const pct = Math.round(rated / allTotal * 100);
+      const done = rated === allTotal;
+      const cls = done ? 'done' : rated > 0 ? 'partial' : '';
+      const active = i === curTask ? ' active' : '';
+      // Badges and the top bar go through L.chipLevel, showing "Level 1" rather
+      // than data.js's "L1". The rail is 166px wide, leaving a badge about 106px
+      // after padding, and "Level 1" at 10px is about 53px, so it fits.
+      // aria-label reads "Task 1 (Level 1)" as well.
+      const lvl = t.level ? esc(L.chipLevel(t.level)) : '';
+      const num = done ? '✓' : i + 1;
+      const pctTxt = done ? '100%' : rated > 0 ? pct + '%' : '';
+      return `<button class="rail-btn${active} ${cls}" data-i="${i}" role="button" aria-label="${L.railAria(i, lvl, rated, allTotal)}"
+        ${i === curTask ? 'aria-current="true"' : ''}>
+        <span class="rb-head">
+          <span class="rb-num">${num}</span>
+          <span class="rb-level">${lvl}</span>
+        </span>
+        <span class="rb-foot">
+          <span class="rb-bar"><span class="fill" style="width:${pct}%"></span></span>
+          <span class="rb-pct">${pctTxt}</span>
+        </span>
+      </button>`;
+    }).join('');
+  }
+
+  function renderHeaderTaskChips() {
+    const t = task();
+    const subj = titleCase(lang === 'zh' ? (t.disciplineLabel || t.discipline) : t.discipline);
+    $('headerTaskChips').innerHTML = `
+      <span class="chip chip-dim">${L.chipTask(curTask)}</span>
+      <span class="chip chip-dim">${L.chipSubject(subj)}</span>
+      <span class="chip chip-dim">${L.chipLevel(esc(t.level))}</span>`;
+  }
+
+  function renderTaskHead() {
+    const t = task();
+    $('taskHead').innerHTML = `
+      <div class="head-compare">
+        <div class="hc-top">
+          <span class="hc-dot"></span>
+          <span class="hc-title">${L.instrLabel}</span>
+        </div>
+        <div class="hc-scroll">
+          <h2 class="head-title">${esc(titleOf(t))}</h2>
+          <p class="head-prompt">${esc(promptOf(t))}</p>
+        </div>
+      </div>`;
+  }
+
+  function renderModelTabs() {
+    const tid = task().id;
+    $('modelTabs').innerHTML = MODELS.map((m, i) => {
+      const rated = modelRated(tid, m.id), total = modelTotal(tid);
+      const dot = rated === total ? 'done' : rated > 0 ? 'partial' : '';
+      return `<button class="model-tab-btn ${i === curModel ? 'active' : ''}" data-mi="${i}" role="tab" aria-selected="${i === curModel}">
+        <span class="dot ${dot}"></span>${esc(m.label)}<span class="mt-count">${rated}/${total}</span>
+      </button>`;
+    }).join('');
+  }
+
+  function renderVideo() {
+    const t = task(), m = model();
+    const src = t.generated[m.id];
+    const poster = t.poster;
+    const card = $('videoCard');
+    card.classList.remove('missing');
+    $('vcStage').innerHTML = `
+      <video src="${esc(src)}" poster="${esc(poster)}" controls preload="metadata" controlsList="nodownload"></video>
+      <div class="video-fallback">${L.videoMissing}<span class="mono"> ${esc(src)}</span></div>`;
+    const v = card.querySelector('video');
+    v.addEventListener('error', () => card.classList.add('missing'));
+    if (!REDUCED) { card.classList.remove('vid-swap'); void card.offsetWidth; card.classList.add('vid-swap'); }
+  }
+
+  const DIM_KEY = {
+    'Scene Consistency': 'scene',
+    'Object Consistency': 'object',
+    'Action Fidelity': 'action',
+    'State Correctness': 'state',
+    'Physical Plausibility': 'phys',
+    'Visual Safety': 'safety',
+  };
+  const dimKey = (d) => DIM_KEY[d] || 'scene';
+
+  function paintQuestion() {
+    const t = task(), m = model(), r = ratings[t.id] && ratings[t.id][m.id] || {};
+    const its = t.items, cur = its[curQ];
+    const rated = its.filter((it) => r[it.qa_id] != null).length;
+    const dk = dimKey(cur.dimension);
+    $('qCard').dataset.dim = dk;
+
+    // Header: dimension (identity colour) + importance + progress
+    $('qHead').innerHTML = `
+      <div class="q-progress">
+        <span class="q-pos">${L.qPos(curQ + 1, its.length, rated)}</span>
+        <div class="q-progress-bar">
+          <div class="q-progress-fill" style="width:${rated / its.length * 100}%"></div>
+          <div class="q-progress-cursor" style="left:${(curQ + 0.5) / its.length * 100}%"></div>
+        </div>
+      </div>
+      <div class="q-tags">
+        <span class="chip chip-dim" data-dim="${dk}">${esc(L.dimLabel(cur.dimension))}</span>
+        <span class="chip chip-imp ${esc(cur.importance)}">${esc(L.impLabel[cur.importance] || cur.importance)}</span>
+      </div>`;
+
+    $('qText').textContent = questionOf(cur);
+
+    // Answer area
+    const currentVal = r[cur.qa_id] || null;
+    const opts = [
+      { v: 'yes', main: L.ans.yes },
+      { v: 'no', main: L.ans.no },
+      { v: 'unjudgable', main: L.ans.unjudgable },
+    ];
+    $('answerGroup').innerHTML = opts.map((o) => `
+      <button class="ans-btn ${o.v} ${currentVal === o.v ? 'selected' : ''}" data-v="${o.v}" role="radio" aria-checked="${currentVal === o.v}">
+        <span class="ans-main">${o.main}</span>
+      </button>`).join('');
+
+    $('qPosStatic').textContent = `${curQ + 1} / ${its.length}`;
+    // Refresh the previous / next labels (at the boundary, hint at the model or task switch)
+    $('qPrev').textContent = curQ === 0
+      ? (curModel > 0 ? L.prevModelEnd : curTask > 0 ? L.prevTaskEnd : L.prevQuestion)
+      : L.prevQuestion;
+    $('qNext').textContent = curQ === its.length - 1
+      ? (curModel < MODELS.length - 1 ? L.nextModel : curTask < TASKS.length - 1 ? L.nextTask : L.lastQuestion)
+      : L.nextQuestion;
+  }
+
+  let _qAnimId = null;
+  function renderQuestion(direction) {
+    const inner = $('qInner');
+    const d = (direction === undefined || direction === 0 || REDUCED) ? 0 : (direction > 0 ? 1 : -1);
+    if (d === 0) { clearTimeout(_qAnimId); inner.classList.remove('q-out-f', 'q-out-b', 'q-in-f', 'q-in-b'); paintQuestion(); return; }
+    clearTimeout(_qAnimId);
+    const fwd = d > 0;
+    inner.classList.remove('q-in-f', 'q-in-b');
+    inner.classList.add(fwd ? 'q-out-f' : 'q-out-b');
+    _qAnimId = setTimeout(() => {
+      paintQuestion();
+      inner.classList.remove('q-out-f', 'q-out-b');
+      void inner.offsetWidth;
+      inner.classList.add(fwd ? 'q-in-f' : 'q-in-b');
+      _qAnimId = setTimeout(() => inner.classList.remove('q-in-f', 'q-in-b'), 260);
+    }, 150);
+  }
+
+  function renderTaskNav() {
+    const t = task();
+    $('btnPrev').disabled = curTask === 0;
+    $('btnNext').disabled = curTask === TASKS.length - 1;
+    const rated = MODELS.reduce((acc, m) => acc + modelRated(t.id, m.id), 0);
+    const total = t.items.length * MODELS.length;
+    $('saveStatus').textContent = rated === total
+      ? L.saveDone
+      : rated > 0
+        ? L.savePartial(rated, total)
+        : L.saveClean;
+  }
+
+  let _videoKey = '';
+  function renderVideoIfNeeded() {
+    const key = curTask + ':' + curModel;
+    if (key === _videoKey) return;   // 同任务同模型下切题：不重建视频，播放不中断
+    _videoKey = key;
+    renderVideo();
+  }
+
+  function renderAll(direction) {
+    renderHeader();
+    renderRail();
+    renderHeaderTaskChips();
+    renderTaskHead();
+    renderModelTabs();
+    renderVideoIfNeeded();
+    renderQuestion(direction);
+    renderTaskNav();
+  }
+
+  // ═══════════════════════════════════════════
+  // Interaction
+  // ═══════════════════════════════════════════
+  function setAnswer(v) {
+    const inner = $('qInner');
+    // During the exit animation the DOM still holds the previous question; refuse answers so they are not misrecorded
+    if (inner.classList.contains('q-out-f') || inner.classList.contains('q-out-b')) return;
+    const tid = task().id, mid = model().id, qaId = items()[curQ].qa_id;
+    ensureCell(tid, mid);
+    // Click to answer; clicking the same option again keeps the answer and
+    // advances (it no longer clears), so a question already answered "yes"
+    // does not need two clicks to move on
+    ratings[tid][mid][qaId] = v;
+    saveRatings();
+    // Update selection and progress in place so a rebuild does not lose focus
+    const grp = $('answerGroup');
+    grp.querySelectorAll('.ans-btn').forEach((b) => {
+      const sel = b.dataset.v === ratings[tid][mid][qaId];
+      b.classList.toggle('selected', sel);
+      b.setAttribute('aria-checked', String(sel));
+    });
+    renderHeader(); renderRail(); renderModelTabs(); renderTaskNav();
+    renderQuestionProgressInPlace();
+    if (autoAdvance && ratings[tid][mid][qaId] != null && curQ < items().length - 1) {
+      setTimeout(() => stepQ(1, true), 80);
+    }
+  }
+
+  function renderQuestionProgressInPlace() {
+    const t = task(), r = ratings[t.id] && ratings[t.id][model().id] || {};
+    const its = t.items;
+    const rated = its.filter((it) => r[it.qa_id] != null).length;
+    const head = $('qHead');
+    const pos = head.querySelector('.q-pos');
+    if (pos) pos.innerHTML = L.qPos(curQ + 1, its.length, rated);
+    const fill = head.querySelector('.q-progress-fill');
+    if (fill) fill.style.width = `${rated / its.length * 100}%`;
+  }
+
+  function stepQ(delta, fromAuto) {
+    const n = items().length;
+    const pTask = curTask, pModel = curModel;
+    if (delta > 0 && curQ >= n - 1) {
+      if (curModel < MODELS.length - 1) { curModel++; curQ = 0; }
+      else if (curTask < TASKS.length - 1) { curTask++; curModel = 0; curQ = 0; }
+      else { toast(L.lastQToast, 'info'); return; }
+    } else if (delta < 0 && curQ <= 0) {
+      if (curModel > 0) { curModel--; curQ = items().length - 1; }
+      else if (curTask > 0) { curTask--; curModel = MODELS.length - 1; curQ = items().length - 1; }
+      else { toast(L.firstQToast, 'info'); return; }
+    } else {
+      curQ += delta;
+    }
+    if (fromAuto) saveRatings();
+    renderAll(delta);
+    // Scroll to top only when the task or model changes; switching questions within a task leaves the video alone
+    const scopeChanged = pTask !== curTask || pModel !== curModel;
+    if (scopeChanged) window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+  }
+
+  function goModel(idx) {
+    if (idx < 0 || idx >= MODELS.length) return;
+    if (idx === curModel) return;
+    const dir = idx > curModel ? 1 : -1;
+    curModel = idx;
+    curQ = 0; // 切换模型时自动回到第一题
+    renderAll(dir);
+    window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+  }
+
+  function goTask(idx) {
+    if (idx < 0 || idx >= TASKS.length) return;
+    saveRatings();
+    const dir = idx > curTask ? 1 : -1;
+    curTask = idx; curModel = 0; curQ = firstUnratedQ();
+    renderAll(dir);
+    window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
+  }
+
+  function clearTask(tid) {
+    if (ratings[tid]) { delete ratings[tid]; saveRatings(); renderAll(); }
+  }
+  function clearAll() {
+    ratings = {}; saveRatings(); renderAll();
+  }
+
+  // ═══════════════════════════════════════════
+  // Source video modal
+  // ═══════════════════════════════════════════
+  function openSource() {
+    const t = task();
+    $('srcTitle').textContent = L.srcTitleFmt(titleOf(t));
+    const v = $('srcVideo');
+    v.src = t.sourceVideo;
+    v.poster = t.poster;
+    $('srcModal').showModal();
+    v.play().then(() => {}).catch(() => {});
+  }
+  function closeSource() {
+    const d = $('srcModal');
+    const v = $('srcVideo');
+    v.pause();
+    v.removeAttribute('src');
+    v.load();
+    d.close();
+  }
+
+  // ═══════════════════════════════════════════
+  function countRated(r) {
+    return Object.values(r || {}).reduce((a, m) => a + Object.values(m || {}).reduce((b, qs) => b + Object.values(qs || {}).filter((v) => v != null).length, 0), 0);
+  }
+  function exportRatings() {
+    try {
+      const blob = new Blob([buildExportJSON()], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ratings.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast(L.ratingsExported, 'ok');
+    } catch (e) { console.error('export ratings failed', e); }
+  }
+  // Export file: one compact object per qa per line, with discipline / domain / dimension / importance / answer
+  function buildExportJSON() {
+    // Collect each task block into its own array of lines first; blocks are
+    // joined by appending a comma after the previous block's closing `}`, so no
+    // comma ends up orphaned in front of the next task's key (the old form
+    // produced `\n,  "taskId": {`).
+    const blocks = [];
+    TASKS.forEach((t) => {
+      const mids = ratings[t.id];
+      if (!mids || typeof mids !== 'object') return;
+      const mkeys = Object.keys(mids).filter((mid) => {
+        const qs = mids[mid];
+        return qs && typeof qs === 'object' && Object.keys(qs).length;
+      });
+      if (!mkeys.length) return;
+      const lines = [`  "${t.id}": {`];
+      mkeys.forEach((mid, mi) => {
+        lines.push(`    "${mid}": {`);
+        const qids = Object.keys(mids[mid]);
+        qids.forEach((qid, qi) => {
+          const it = (t.items || []).find((x) => x.qa_id === qid);
+          const meta = {
+            discipline: t.discipline || '',
+            domain: t.domain || '',
+            dimension: ((it && it.dimension) || '').toLowerCase(),
+            importance: (it && it.importance) || '',
+            answer: mids[mid][qid] ?? null,
+          };
+          lines.push(`      "${qid}": ${JSON.stringify(meta)}${qi < qids.length - 1 ? ',' : ''}`);
+        });
+        lines.push(`    }${mi < mkeys.length - 1 ? ',' : ''}`);
+      });
+      lines.push('  }');
+      blocks.push(lines);
+    });
+    const out = ['{'];
+    blocks.forEach((lines, bi) => {
+      out.push(lines.join('\n') + (bi < blocks.length - 1 ? ',' : ''));
+    });
+    out.push('}');
+    return out.join('\n');
+  }
+  // Import normalisation: new format (objects with metadata) -> internal { qaId: answer }; legacy strings kept verbatim
+  function normalizeImported(obj) {
+    const out = {};
+    Object.keys(obj || {}).forEach((tid) => {
+      const t = obj[tid];
+      if (!t || typeof t !== 'object' || Array.isArray(t)) return;
+      out[tid] = {};
+      Object.keys(t).forEach((mid) => {
+        const m = t[mid];
+        if (!m || typeof m !== 'object' || Array.isArray(m)) return;
+        out[tid][mid] = {};
+        Object.keys(m).forEach((qid) => {
+          const v = m[qid];
+          if (v == null) return;
+          if (typeof v === 'object' && !Array.isArray(v) && 'answer' in v) {
+            if (v.answer != null) out[tid][mid][qid] = v.answer;
+          } else {
+            out[tid][mid][qid] = v; // 旧格式：直接是 'yes'|'no'|'unjudgable'
+          }
+        });
+      });
+    });
+    return out;
+  }
+  function importRatings(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const imported = JSON.parse(reader.result);
+        if (!imported || typeof imported !== 'object' || Array.isArray(imported)) throw new Error('bad payload');
+        const norm = normalizeImported(imported); // 新格式（带元数据对象）→ 内部 { qaId: answer }
+        const before = countRated(ratings);
+        ratings = mergeRatings(norm, ratings); // 现有评分优先，导入文件补齐缺失
+        saveRatings();
+        renderAll();
+        toast(L.ratingsImported(countRated(ratings) - before), 'ok');
+      } catch (e) { toast(L.importInvalid, 'warn'); }
+    };
+    reader.onerror = () => toast(L.importInvalid, 'warn');
+    reader.readAsText(file);
+  }
+
+  // ═══════════════════════════════════════════
+  // Toast
+  // ═══════════════════════════════════════════
+  function toast(msg, type) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (type ? ' ' + type : '');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { el.classList.remove('show'); }, 2200);
+  }
+
+  // ═══════════════════════════════════════════
+  // Event binding
+  // ═══════════════════════════════════════════
+  function bindEvents() {
+    // Theme
+    $('themeToggle').addEventListener('click', () => {
+      const cur = document.documentElement.dataset.theme;
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      document.getElementById('colorSchemeMeta').content = next;
+      $('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    });
+
+    // Task rail (event delegation)
+    $('taskRail').addEventListener('click', (e) => {
+      const b = e.target.closest('.rail-btn');
+      if (b) goTask(parseInt(b.dataset.i, 10));
+    });
+
+    // Model switch (event delegation, bound on the model card row)
+    $('modelTabs').addEventListener('click', (e) => {
+      const b = e.target.closest('.model-tab-btn');
+      if (b) goModel(parseInt(b.dataset.mi, 10));
+    });
+
+    // Answering (event delegation)
+    $('answerGroup').addEventListener('click', (e) => {
+      const b = e.target.closest('.ans-btn');
+      if (b) setAnswer(b.dataset.v);
+    });
+
+    // Question navigation
+    $('qPrev').addEventListener('click', () => stepQ(-1));
+    $('qNext').addEventListener('click', () => stepQ(1));
+    $('autoAdvChk').addEventListener('change', (e) => {
+      autoAdvance = e.target.checked;
+      try { localStorage.setItem(AUTOADV_KEY, autoAdvance ? '1' : '0'); } catch (err) {}
+    });
+
+    // Bottom task navigation
+    $('btnPrev').addEventListener('click', () => goTask(curTask - 1));
+    $('btnNext').addEventListener('click', () => goTask(curTask + 1));
+    $('btnClearTask').addEventListener('click', () => {
+      if (confirm(L.confirmClearTask(curTask, titleOf(task())))) { clearTask(task().id); toast(L.taskCleared, 'ok'); }
+    });
+    $('btnClearAll').addEventListener('click', () => {
+      if (confirm(L.confirmClearAll)) { clearAll(); toast(L.allCleared, 'ok'); }
+    });
+    $('btnExportRatings').addEventListener('click', exportRatings);
+    $('btnImportRatings').addEventListener('click', () => $('importRatingsInput').click());
+    $('importRatingsInput').addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (f) importRatings(f);
+      e.target.value = '';
+    });
+
+    // Source video modal
+    $('srcBtn').addEventListener('click', openSource);
+    $('srcClose').addEventListener('click', closeSource);
+    $('srcModal').addEventListener('close', () => {
+      const v = $('srcVideo');
+      v.pause();
+      v.removeAttribute('src');
+      v.load();
+    });
+    $('srcModal').addEventListener('click', (e) => {
+      if (e.target === $('srcModal')) closeSource(); // 点击背板关闭
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target.closest('input, textarea, select')) return;
+      if ($('srcModal').open) return;
+      const k = e.key;
+      if (k === 'ArrowLeft') { e.preventDefault(); stepQ(-1); }
+      else if (k === 'ArrowRight') { e.preventDefault(); stepQ(1); }
+      else if (k === '1' || k === 'y' || k === 'Y') { e.preventDefault(); setAnswer('yes'); }
+      else if (k === '2' || k === 'n' || k === 'N') { e.preventDefault(); setAnswer('no'); }
+      else if (k === '3' || k === 'u' || k === 'U') { e.preventDefault(); setAnswer('unjudgable'); }
+      else if (k === ',') { goModel(curModel - 1); }
+      else if (k === '.') { goModel(curModel + 1); }
+    });
+
+    // Language switch (zh / EN)
+    $('langToggle').addEventListener('click', (e) => {
+      const b = e.target.closest('.lang-opt');
+      if (!b || b.dataset.lang === lang) return;
+      setLang(b.dataset.lang);
+    });
+  }
+
+  // ═══════════════════════════════════════════
+  // Init
+  // ═══════════════════════════════════════════
+  async function init() {
+    let lsOk = true;
+    try { const k = '__lb_test__'; localStorage.setItem(k, 't'); localStorage.removeItem(k); }
+    catch (e) { lsOk = false; }
+
+    await detectServer();
+    await loadRatings();
+    setPersistBadge(serverMode ? 'ok' : IS_HTTP ? 'fallback' : 'local');
+    if (!lsOk && !serverMode) { $('saveStatus').textContent = L.storageUnavail; $('statusDot').style.background = 'var(--unk-solid)'; }
+
+    // Restore preferences
+    autoAdvance = (() => { try { return (localStorage.getItem(AUTOADV_KEY) ?? '1') === '1'; } catch (e) { return true; } })();
+    $('autoAdvChk').checked = autoAdvance;
+    const theme = document.documentElement.dataset.theme;
+    $('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+
+    // Language
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    document.title = L.docTitle;
+    applyStaticLang();
+    updateLangSwitch();
+
+    curQ = firstUnratedQ();
+
+    TASKS.forEach((t) => MODELS.forEach((m) => ensureCell(t.id, m.id)));
+
+    bindEvents();
+    renderAll();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

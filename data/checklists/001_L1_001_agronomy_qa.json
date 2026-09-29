@@ -1,0 +1,77 @@
+{
+  "task_id": "001_L1_001_agronomy",
+  "task_level": "L1",
+  "source_spec": "001_L1_001_agronomy_spec.json",
+  "items": [
+    {
+      "qa_id": "q01",
+      "dimension": "Scene Consistency",
+      "importance": "standard",
+      "question": "Does the camera viewpoint remain stable and consistent with a nearby observer, without abrupt pans, jumps, or scene changes, as the operator transfers the scalpel and scrapes the plant root?",
+      "question_zh": "在操作者递解剖刀并刮擦植物根的过程中，摄像机视角是否保持稳定，且与附近观察者的视角一致，没有突然的平移、跳动或场景切换？"
+    },
+    {
+      "qa_id": "q02",
+      "dimension": "Object Consistency",
+      "importance": "critical",
+      "question": "Does the scalpel remain a single, identifiable tool throughout the video, without duplicating, merging with the plant root, or morphing into another object?",
+      "question_zh": "在整个视频中，解剖刀是否始终是一个独立的、可辨识的工具，没有出现复制、与植物根融合或变成其他物体？"
+    },
+    {
+      "qa_id": "q03",
+      "dimension": "Object Consistency",
+      "importance": "critical",
+      "question": "Does the plant root segment remain a single, identifiable object throughout the video, without splitting into multiple pieces, disappearing, or merging with the scalpel or the operator's hand?",
+      "question_zh": "在整个视频中，植物根段是否始终是一个独立的、可辨识的物体，没有裂成多段、消失，或与解剖刀或操作者的手融合？"
+    },
+    {
+      "qa_id": "q04",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the operator visibly transfer the scalpel from their right hand to their left hand at the start of the procedure?",
+      "question_zh": "在操作开始时，操作者是否明显地将解剖刀从右手递到左手？"
+    },
+    {
+      "qa_id": "q05",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the operator's left hand use the scalpel to scrape along the plant root?",
+      "question_zh": "操作者的左手是否用解剖刀沿着植物根刮擦？"
+    },
+    {
+      "qa_id": "q06",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the scalpel transfer from the right hand to the left hand occur before the left hand begins scraping the root?",
+      "question_zh": "解剖刀从右手递到左手是否发生在左手开始刮擦根之前？"
+    },
+    {
+      "qa_id": "q07",
+      "dimension": "State Correctness",
+      "importance": "critical",
+      "question": "Does the scraping action produce a visible peeling of light-colored inner bark from the plant root?",
+      "question_zh": "刮擦动作是否使植物根上可见地剥落出浅色的内层皮？"
+    },
+    {
+      "qa_id": "q08",
+      "dimension": "Physical Plausibility",
+      "importance": "standard",
+      "question": "Does the scalpel maintain plausible contact with the root surface during scraping, without visibly penetrating or passing through the root?",
+      "question_zh": "在刮擦过程中，解剖刀是否与根表面保持合理的接触，没有明显刺入或穿透根？"
+    },
+    {
+      "qa_id": "q09",
+      "dimension": "Physical Plausibility",
+      "importance": "standard",
+      "question": "Does the plant root remain held in the operator's right hand throughout the scraping, without floating or passing through the hand?",
+      "question_zh": "在整个刮擦过程中，植物根是否始终被握在操作者的右手里，没有漂浮或穿过手？"
+    },
+    {
+      "qa_id": "q10",
+      "dimension": "Visual Safety",
+      "importance": "standard",
+      "question": "Does the operator avoid accidental cuts or contact of the scalpel with their own hand or fingers during the transfer and scraping?",
+      "question_zh": "在递刀和刮擦过程中，操作者是否避免解剖刀意外割到或碰到自己的手或手指？"
+    }
+  ]
+}

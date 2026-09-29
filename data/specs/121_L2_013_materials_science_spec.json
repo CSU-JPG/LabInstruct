@@ -1,0 +1,150 @@
+{
+  "task_id": "121_L2_013_materials_science",
+  "split": "L2",
+  "domain": "liquid_handling | container_operations",
+  "discipline": "materials_science",
+  "title": "Adding PBS to LAP reagent bottle",
+  "description": "A laboratory operator wearing green gloves prepares a chemical solution by adding PBS to a small brown bottle containing LAP. Three micropipettes are held on the pipette stand: two already have tips attached and one has no tip. The operator opens the PBS bottle, retrieves the micropipette without a tip, opens the pipette tip box, attaches a fresh tip, aspirates PBS, and dispenses it into the brown bottle. A magnetic stirrer with a beaker of water runs continuously in the background.",
+  "initial_image": "../first_frames/121_L2_013_materials_science.jpg",
+  "scene": {
+    "objects": [
+      {
+        "id": "gloved_hands",
+        "name": "Operator's gloved hands",
+        "contents": "N/A",
+        "material": "nitrile"
+      },
+      {
+        "id": "brown_bottle",
+        "name": "Small brown reagent bottle",
+        "contents": "LAP (Lyophilized Aldehyde Polyethylene Glycol)",
+        "material": "glass"
+      },
+      {
+        "id": "pbs_bottle",
+        "name": "Large PBS bottle",
+        "contents": "PBS buffer",
+        "material": "plastic"
+      },
+      {
+        "id": "pipettes",
+        "name": "Three micropipettes",
+        "contents": "two with tips attached and one without a tip",
+        "material": "plastic",
+        "quantity": 3
+      },
+      {
+        "id": "stirrer",
+        "name": "Magnetic stirrer",
+        "contents": "N/A",
+        "material": "plastic/metal"
+      },
+      {
+        "id": "beaker",
+        "name": "Glass beaker",
+        "contents": "Water",
+        "material": "glass"
+      },
+      {
+        "id": "tip_box",
+        "name": "Pipette tip box",
+        "contents": "Pipette tips",
+        "material": "plastic"
+      }
+    ],
+    "spatial_relations": [
+      "The magnetic stirrer is positioned on a stand behind the pipette stand.",
+      "The brown bottle is held in the operator's left hand in the foreground.",
+      "The PBS bottle is located to the right of the stirrer.",
+      "Three micropipettes are mounted on a stand to the left of the stirrer; two have tips attached and one does not.",
+      "The closed tip box is located behind the stirrer."
+    ],
+    "environment": "indoor_laboratory"
+  },
+  "action_sequence": [
+    {
+      "step": 1,
+      "action": "right hand unscrews the cap of the brown reagent bottle",
+      "target_object": "brown_bottle",
+      "contact": "hand_object",
+      "state_transition": {
+        "from": "the brown bottle is closed",
+        "to": "the brown bottle is open"
+      }
+    },
+    {
+      "step": 2,
+      "action": "right hand unscrews the cap of the PBS bottle",
+      "target_object": "pbs_bottle",
+      "contact": "hand_object",
+      "state_transition": {
+        "from": "the PBS bottle is closed",
+        "to": "the PBS bottle is open"
+      }
+    },
+    {
+      "step": 3,
+      "action": "right hand takes the micropipette without a tip from the stand",
+      "target_object": "pipettes",
+      "contact": "hand_tool",
+      "state_transition": {
+        "from": "the untipped micropipette is on the stand",
+        "to": "the untipped micropipette is held in the right hand"
+      }
+    },
+    {
+      "step": 4,
+      "action": "right hand opens the pipette tip box",
+      "target_object": "tip_box",
+      "contact": "hand_object",
+      "state_transition": {
+        "from": "tip box is closed",
+        "to": "tip box is open"
+      }
+    },
+    {
+      "step": 5,
+      "action": "right hand attaches a fresh tip from the open tip box to the untipped micropipette",
+      "target_object": "pipettes",
+      "contact": "hand_tool",
+      "state_transition": {
+        "from": "selected micropipette has no tip",
+        "to": "a fresh tip is attached to the selected micropipette"
+      }
+    },
+    {
+      "step": 6,
+      "action": "right hand aspirates PBS from the large bottle",
+      "target_object": "pbs_bottle",
+      "contact": "tool_liquid",
+      "state_transition": {
+        "from": "PBS is in the large bottle",
+        "to": "PBS is inside the micropipette tip"
+      }
+    },
+    {
+      "step": 7,
+      "action": "right hand dispenses PBS into the brown bottle",
+      "target_object": "brown_bottle",
+      "contact": "tool_liquid",
+      "state_transition": {
+        "from": "the brown bottle contains LAP",
+        "to": "PBS is added to the brown bottle"
+      }
+    }
+  ],
+  "prompt_for_gen": "From a nearby observer viewpoint, a laboratory workspace is visible featuring a black benchtop. In the center, a magnetic stirrer operates continuously, agitating a glass beaker filled with clear water. To the left, a pipette stand holds three micropipettes: two already have tips attached, while one has no tip. A closed box of pipette tips sits behind the stirrer. The operator, wearing green nitrile gloves, holds a small brown glass bottle in the left hand. The right hand unscrews the white cap of the brown bottle and sets it aside to expose the opening. The operator then reaches with the right hand to a large plastic bottle of PBS buffer on the right side of the bench and unscrews its cap. Next, the right hand retrieves the untipped micropipette from the stand, opens the pipette tip box, attaches a fresh tip, and inserts the tip into the PBS bottle to aspirate a volume of liquid. Finally, the operator moves the pipette over the open brown bottle and dispenses the PBS into it, mixing the buffer with the reagent inside. The video concludes with the liquid successfully transferred into the brown bottle.",
+  "difficulty_features": {
+    "number_of_objects": 7,
+    "number_of_action_steps": 7,
+    "requires_liquid_handling": true,
+    "requires_tool_manipulation": true,
+    "requires_fine_motor_control": true,
+    "requires_transparent_object_reasoning": false,
+    "requires_color_tracking": false,
+    "requires_volume_change_detection": false,
+    "requires_spatial_memory": true,
+    "requires_sequential_ordering": true
+  },
+  "viewpoint": "nearby_observer"
+}

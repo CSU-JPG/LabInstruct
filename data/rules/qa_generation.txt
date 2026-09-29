@@ -1,0 +1,242 @@
+You are creating a task-specific QA checklist for evaluating a generated laboratory instructional video.
+
+The video is generated in a text-image-to-video (TI2V) paradigm: the video model receives the provided first frame plus a single text instruction, and produces the video. The text instruction below is the ONLY task content available to the video model, and it is the only source you may use for QA content.
+
+Your goal is to generate a benchmark evaluation checklist BEFORE seeing any generated video output.
+
+The QA checklist must therefore be:
+- output-blind;
+- derived only from the text instruction;
+- independent of any specific model failure example.
+
+The purpose of QA is not to maximize the number of questions. The purpose is to create a minimal but sufficient set of atomic, visually verifiable criteria that measure whether the generated video demonstrates the procedure described in the text instruction.
+
+Task metadata (echo these into the output; do not derive any QA content from them):
+- task_id: {{TASK_ID}}
+- task_level: {{TASK_LEVEL}}
+
+Generate approximately:
+- {{MIN_QAS}} to {{MAX_QAS}} QA items.
+
+Recommended ranges:
+- L1 tasks: approximately 6-15 QA items.
+- L2 tasks: approximately 10-20 QA items.
+
+These ranges are guidelines, not hard upper limits: a complex task may exceed them. The practical minimum is fixed by coverage: every one of the six dimensions must have at least one QA item.
+
+QA quantity should be determined by:
+- number of atomic actions described in the text instruction;
+- number of visible state transitions described in the text instruction;
+- number of essential action-order dependencies implied by the text instruction;
+- number of task-relevant object interactions in the text instruction;
+- number of meaningful physical plausibility constraints;
+- number of meaningful safety constraints.
+
+Do not add weak, repetitive, or artificial QA items only to reach a target number.
+
+Because the first frame is provided to the generator, facts already guaranteed by the first frame must NOT be evaluated.
+
+Do NOT ask:
+- Is object X visible initially?
+- Is the initial workspace correct?
+- Is the initial camera viewpoint correct?
+- Are initial object positions correct?
+
+Instead evaluate temporal behavior that generated videos can fail on:
+- object identity drift;
+- disappearance;
+- duplication;
+- merging;
+- morphing;
+- shape/color/size drift;
+- interpenetration or clipping;
+- physically impossible motion;
+- skipped actions;
+- incorrect action order;
+- incorrect visible state transitions;
+- scene/viewpoint drift;
+- visible safety failures.
+
+Every QA item must be a meaningful, task-specific claim derived from the specific text instruction. Never copy the wording of example questions shown in these instructions; instantiate every question with the objects, tools, hands, and steps named in the text instruction.
+
+Follow these rules.
+
+1. Atomic QA definition
+
+Each QA item must test exactly ONE visually observable claim.
+
+Atomic does NOT mean exhaustive.
+
+Do not split every possible manifestation of the same underlying failure into separate questions.
+
+Bad:
+- Does the pipette keep its shape?
+- Does the pipette keep its color?
+- Does the pipette avoid duplication?
+- Does the pipette avoid disappearance?
+- Does the pipette avoid morphing?
+
+Better:
+- Does the pipette remain a single identifiable object throughout the video?
+
+Only create separate QA items when they represent independently meaningful requirements.
+
+2. QA granularity consistency
+
+QA count differences across tasks are acceptable only when they reflect task complexity.
+
+A QA item must not hide multiple atomic actions.
+
+Bad:
+"Does the pipette transfer liquid correctly?"
+
+This combines:
+- source interaction;
+- aspiration;
+- movement;
+- target interaction;
+- dispensing.
+
+Better:
+- Does the pipette tip visibly interact with the source liquid?
+- Is aspiration-like manipulation visible?
+- Does the pipette move from the source container to the target container?
+- Is dispensing-like manipulation visible?
+
+The goal is consistent QA granularity across tasks.
+
+3. Temporal visual grounding
+
+Each QA must be answered from visible evidence in the generated video.
+
+Do NOT ask about:
+- hidden intent;
+- invisible internal states;
+- exact quantities that cannot be visually verified;
+- chemical identity;
+- information requiring scientific inference beyond visible evidence.
+
+A QA may refer to a local temporal event. It does not need to describe the entire video.
+
+4. Answer semantics
+
+Every QA question must be positively phrased.
+
+For a faithful execution, the expected answer is always YES.
+
+Allowed evaluator outputs:
+- yes: visible evidence confirms the requirement is satisfied.
+- no: visible evidence confirms the requirement is violated.
+- unjudgeable: the video does not provide sufficient evidence because of occlusion, blur, disappearance, severe artifacts, or another visibility failure.
+
+Do not use negative wording.
+
+Bad:
+"Does the pipette duplicate during the video?"
+
+Good:
+"Does the pipette remain a single identifiable object throughout the video?"
+
+5. Dimensions
+
+Use only these dimensions:
+{{DIMENSIONS}}
+
+Every one of the six dimensions must be covered by at least one QA item.
+
+Even when a dimension is included to ensure coverage, its question must still be a meaningful and visually verifiable claim derived from the text instruction. Do not pad a dimension with weak or repetitive questions.
+
+6. Scene Consistency
+
+Evaluate temporal stability of the task-relevant environment and viewpoint across the procedure described in the text instruction.
+
+Check whether the camera viewpoint holds steady or shifts only as the text instruction implies, and whether the task-relevant workspace and background remain visually continuous. Phrase the question around the actual objects and workspace named in the text instruction.
+
+Do not treat normal changes caused by hands, shadows, reflections, or task motion as scene failures.
+
+Do not combine camera, lighting, and background stability into one QA.
+
+7. Object Consistency
+
+Evaluate whether the objects named in the text instruction maintain identity throughout the video.
+
+For each task-relevant object, check that it remains one identifiable instance (no duplication, merging, morphing, or identity confusion with a distinct neighbor object), and that distinct objects the task relies on stay distinguishable. Name the specific objects from the text instruction.
+
+Only evaluate object properties relevant to task interpretation.
+
+8. Action Fidelity
+
+Action QA should primarily follow the atomic actions described in the text instruction.
+
+Recommended rule:
+
+Number of Action QA ≈ number of atomic actions + essential order constraints.
+
+For each action step the text instruction describes, phrase one positively phrased, visually verifiable question that names the concrete object, tool, hand, and motion specified there. When the text instruction implies a required order between steps, add one question per essential ordering dependency.
+
+Do not add visual quality questions into Action Fidelity.
+
+9. State Correctness
+
+Only evaluate visible state transitions that the text instruction explicitly describes (for example, a container that ends filled, a tool returned to its holder, an object that moves to a named location).
+
+Phrase each question around the specific post-action state the text instruction names, and anchor it to the action that should produce it.
+
+Do not evaluate invisible states.
+
+10. Physical Plausibility
+
+Evaluate task-relevant physical failures, instantiated from the objects and materials named in the text instruction: tools remain in plausible contact with what they touch (no interpenetration or clipping), liquids remain contained, solid objects do not float or pass through other objects, and deformations match the described material.
+
+Phrase each question around the specific interaction the text instruction describes.
+
+Do not combine unrelated physical failure modes.
+
+11. Visual Safety
+
+Evaluate only visible and task-relevant safety failures implied by the text instruction: unintended spillage or escape of contents, breakage or damage of equipment, dangerous handling of the named objects.
+
+Phrase each question around the specific object and procedure from the text instruction.
+
+Do not evaluate hidden laboratory rules.
+
+12. Importance labels
+
+Use only:
+{{IMPORTANCE_LEVELS}}
+
+Mark an item critical only when failure prevents a reasonable observer from concluding that the requested laboratory operation was correctly demonstrated.
+
+Usually critical:
+- required actions;
+- required visible final states;
+- essential action-order dependencies;
+- identity-breaking failure of required objects.
+
+Do not mark minor visual defects as critical.
+
+13. Output format
+
+Return exactly one JSON object.
+
+{
+  "task_id": "copy the task_id given above",
+  "task_level": "{{TASK_LEVEL}}",
+  "qa_items": [
+    {
+      "qa_id": "q01",
+      "dimension": "one of the six dimensions",
+      "importance": "one allowed importance label",
+      "question": "one positively phrased atomic question"
+    }
+  ]
+}
+
+Output requirements:
+- qa_id must be sequential: q01, q02, q03...
+- qa_items must cover all six dimensions, at least one per dimension.
+- Output only JSON.
+
+Text instruction (the only task content available to the video generator; derive every QA item from this text):
+
+{{TEXT_INSTRUCTION}}

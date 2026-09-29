@@ -1,0 +1,196 @@
+# =============================================================================
+# LabInstruct model registry
+# -----------------------------------------------------------------------------
+# One entry per OPEN-SOURCE generator evaluated in the paper.
+# The two commercial systems in the paper's leaderboard (Seedance 2.0,
+# Wan 3.0) are not runnable from this repository and are not listed here.
+#
+#   name / org / scale / fps / resolution / l1_frames / l2_frames
+#       -> as reported in the paper (generation settings).
+#   adapter  -> adapter class name in bench/adapters/<name>.py
+#   hf_id    -> Hugging Face model id (diffusers models only).
+#   run      -> how the model executes:
+#                  "api"  : remote API, no local env (dispatcher calls directly)
+#                  "env"  : run in a dedicated Python env via `env`
+#                  "local": import in the current env (shared diffusers env)
+#   env      -> command prefix that runs `python` inside the model's env.
+#               * ends with a python interpreter path  -> used as-is
+#               * otherwise                           -> `python` is appended
+#               Empty string means "the current interpreter" (run: local).
+#   num_gpus / gpu_mem_gb -> used by the dispatcher for GPU allocation.
+#   params   -> adapter-specific generation defaults (override via CLI/config).
+#
+# The paths below are placeholders, not the machine layout used for the paper's
+# runs.  Set these environment variables to your own directories and they are
+# substituted when the registry is loaded:
+#
+#   LABINSTRUCT_ROOT          repositories (a checkout of each official model repo)
+#   LABINSTRUCT_MODELS_ROOT   model weights / checkpoints
+#
+# Both are literal-path substitutions, so a value pointing at a missing file is
+# reported by the adapter's available() check, not here.
+# =============================================================================
+
+ltx2.3:
+  name: LTX-2.3
+  org: Lightricks
+  scale: 22B
+  fps: 24
+  resolution: 480p
+  # The official pipeline requires frame counts of 8k+1 (VAE temporal
+  # compression 8); 96/288 would be silently trimmed to 89/281.
+  # 97 = 8x12+1 (~4.04s), 289 = 8x36+1 (~12.04s).
+  l1_frames: 97
+  l2_frames: 289
+  adapter: ltx
+  # Run in the official Lightricks/LTX-2 repo's own venv via its TI2V two-stage
+  # CLI (distilled ckpt + upscaler + distilled LoRA + Gemma). hf_id is kept for
+  # reference only -- that repo is not a diffusers pipeline (no model_index.json).
+  hf_id: lightricks/LTX-2.3
+  run: env
+  env: "${LABINSTRUCT_ROOT}/LTX-2/.venv/bin/python"
+  num_gpus: 1
+  gpu_mem_gb: 48
+  params:
+    steps: 30
+    guidance_scale: 3.0
+    audio: false   # audio disabled per paper Sec. 4.1; the CLI still emits a track, eval uses the video part
+    repo: "${LABINSTRUCT_ROOT}/LTX-2"
+    checkpoint_path: "${LABINSTRUCT_MODELS_ROOT}/ltx-2.3-22b-distilled-1.1.safetensors"
+    distilled_lora: "${LABINSTRUCT_MODELS_ROOT}/ltx-2.3-distilled-lora-384-1.1.safetensors"
+    spatial_upsampler_path: "${LABINSTRUCT_MODELS_ROOT}/ltx-2.3-spatial-upscaler-x2-1.1.safetensors"
+    gemma_root: "${LABINSTRUCT_MODELS_ROOT}/gemma-3-12b-it-qat-q4_0-unquantized"
+
+wan2.2:
+  name: Wan2.2-I2V-A14B
+  org: Alibaba
+  scale: 14B
+  # Wan's official i2v sample_fps is fixed at 16 (wan/configs/wan_i2v_A14B.py),
+  # so frame counts follow 16fps x seconds + 1: L1 4s = 65, L2 12s = 193
+  # (the adapter then aligns to 4n+1).
+  fps: 16
+  resolution: 480p
+  l1_frames: 65
+  l2_frames: 193
+  adapter: wan
+  # Run in the official Wan2.2 repo's venv via its generate.py CLI with the raw
+  # Wan2.2-I2V-A14B checkpoint layout (VAE + T5 + high/low-noise transformers).
+  # hf_id is kept for reference; the diffusers re-packaging is not used here.
+  hf_id: Wan-AI/Wan2.2-I2V-A14B-Diffusers
+  run: env
+  env: "${LABINSTRUCT_ROOT}/Wan2.2/.venv/bin/python"
+  num_gpus: 1
+  gpu_mem_gb: 64
+  params:
+    steps: 30
+    guidance_scale: 5.0
+    audio: false   # audio disabled via the API option, per paper Sec. 4.1
+    repo: "${LABINSTRUCT_ROOT}/Wan2.2"
+    ckpt_dir: "${LABINSTRUCT_MODELS_ROOT}/Wan2.2-I2V-A14B"
+
+cosmos3-nano:
+  name: Cosmos3-Nano
+  org: NVIDIA
+  scale: 16B
+  fps: 24
+  resolution: 480p
+  l1_frames: 96
+  l2_frames: 288
+  adapter: cosmos
+  hf_id: nvidia/Cosmos3-Nano
+  env: "${LABINSTRUCT_ROOT}/cosmos/cosmos3/.venv/bin/python"
+  run: env
+  num_gpus: 1
+  gpu_mem_gb: 48
+  params:
+    # These are the framework's OWN image2video modality defaults -- not
+    # Nano-specific values.  Source:
+    # cosmos_framework/inference/defaults/image2video/sample_args.json
+    # (num_steps=35, guidance=6.0, shift=10.0).  Verified: the per-model YAMLs
+    # contain no sampling section, so Nano and Super share these.
+    steps: 35
+    guidance_scale: 6.0
+    shift: 10.0
+    prompt_upsampling: false
+
+cosmos3-super:
+  name: Cosmos3-Super
+  org: NVIDIA
+  scale: 64B
+  fps: 24
+  resolution: 480p
+  l1_frames: 96
+  l2_frames: 288
+  adapter: cosmos
+  hf_id: nvidia/Cosmos3-Super
+  env: "${LABINSTRUCT_ROOT}/cosmos/cosmos3/.venv/bin/python"
+  run: env
+  num_gpus: 4        # 64B does not fit one card -> FSDP shard across 4
+  gpu_mem_gb: 40     # per-GPU share after sharding
+  params:
+    # Same framework image2video modality defaults as Nano (shared JSON);
+    # kept explicit per model so the protocol is recorded per model.
+    steps: 35
+    guidance_scale: 6.0
+    shift: 10.0
+    prompt_upsampling: false
+
+lingbot-video:
+  name: LingBot-Video
+  org: Robbyant
+  scale: 30B
+  fps: 24
+  resolution: 480p
+  l1_frames: 97        # num_frames must be 4n+1 -> 97
+  l2_frames: 289
+  adapter: lingbot
+  env: "${LABINSTRUCT_ROOT}/lingbot-video/.venv/bin/python3.11"
+  run: env
+  # num_gpus > 1 runs the official FSDP + context-parallel recipe: the harness
+  # launches N subprocess ranks with torchrun, rank 0 then starts a nested
+  # torchrun that shards the base DiT and context-parallelises the sequence over
+  # the reserved cards.  Without it, 30B bf16 plus the activations of a 289-frame
+  # L2 clip can exceed a single card.  num_gpus: 1 uses the plain single-process
+  # path -- the adapter switches on its own, no code change needed.  gpu_mem_gb
+  # is only used for the dispatcher's allocation bookkeeping.
+  num_gpus: 1
+  gpu_mem_gb: 64
+  params:
+    steps: 40
+    guidance_scale: 3.0
+    shift: 3.0
+    run_refiner: false
+    repo: "${LABINSTRUCT_ROOT}/lingbot-video"     # official repo (cwd for its scripts)
+    model_dir: "${LABINSTRUCT_MODELS_ROOT}/lingbot-video-moe-30b-a3b"
+    rewriter_base_model: "Qwen/Qwen3.6-27B"            # VLM base
+    rewriter_adapter: "robbyant/lingbot-video-rewriter-lora"   # LoRA adapter
+    # Optional interpreter for the prompt rewriter.  The LingBot venv lacks the
+    # causal-conv1d/flash kernels, so its hybrid linear attention falls back to
+    # torch and decodes at ~2.2 tok/s; an env that has them runs ~4x faster.
+    # Falls back to sys.executable when unset.
+    # rewriter_python: "${LABINSTRUCT_MODELS_ROOT}/rewriter-venv/bin/python"
+
+minimax-h3:
+  name: MiniMax H3
+  org: MiniMax
+  scale: 33B
+  fps: 24
+  resolution: 480p
+  # MiniMax-H3 only accepts 17n+5 within [120, 360] (5-15s @ 24fps); 124 and
+  # 294 are the nearest valid values, and are the frame counts the paper
+  # reports for this model.
+  l1_frames: 124
+  l2_frames: 294
+  adapter: minimax
+  hf_id: MiniMaxAI/MiniMax-H3
+  # Single GPU + CPU offload: ~134GB of bf16 weights stay in host memory and
+  # components move to the card on demand.  Needs Modular diffusers @ main +
+  # torch 2.8 + torchvision in the MiniMax-H3 venv.
+  run: env
+  env: "${LABINSTRUCT_ROOT}/MiniMax-H3-main/.venv/bin/python"
+  num_gpus: 1
+  gpu_mem_gb: 80
+  params:
+    steps: 30
+    short_edge: 480
+    with_audio: false

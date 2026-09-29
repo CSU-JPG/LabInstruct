@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "labinstruct"
+version = "0.1.0"
+description = "Generation + evaluation harness for LabInstruct: situated instructional video generation for laboratory procedures"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "pyyaml>=6.0",
+    "requests>=2.31",
+]
+
+# The judge path, the QA-drafting script and the API-backed adapters install
+# from a single env.  The diffusers-backed generators pin mutually conflicting
+# versions, so each one keeps its own environment and is launched as a
+# subprocess -- that is the whole point of the per-model `env:` field in
+# bench/models.yaml.
+[project.optional-dependencies]
+qa = ["openai>=1.0"]           # scripts/generate_qas.py (drafting checklists)
+diffusers = [
+    "torch>=2.4",
+    "diffusers>=0.32",
+    "numpy>=1.24",
+    "Pillow>=10.0",
+    "imageio>=2.34",
+    "imageio-ffmpeg>=0.4",
+    "soundfile>=0.12",
+]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+labinstruct = "bench.cli:main"
+
+[tool.setuptools]
+# The import package is still named `bench` so that the released code is
+# byte-identical to the research code it was extracted from; only the
+# distribution name changed. See README.md "Repository layout".
+packages = ["bench", "bench.adapters", "bench.core", "bench.eval"]
+
+[tool.setuptools.package-data]
+bench = ["models.yaml"]

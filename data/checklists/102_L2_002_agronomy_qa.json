@@ -1,0 +1,126 @@
+{
+  "task_id": "102_L2_002_agronomy",
+  "task_level": "L2",
+  "source_spec": "102_L2_002_agronomy_spec.json",
+  "items": [
+    {
+      "qa_id": "q01",
+      "dimension": "Scene Consistency",
+      "importance": "standard",
+      "question": "Does the camera maintain a consistent downward-looking viewpoint of the dark gray bench and petri dishes for the entire video?",
+      "question_zh": "在整个视频中，摄像机是否保持俯视深灰色实验台和培养皿的、一致的视角？"
+    },
+    {
+      "qa_id": "q02",
+      "dimension": "Object Consistency",
+      "importance": "critical",
+      "question": "Does the petri dish containing yellow seeds remain a single, identifiable dish throughout the video?",
+      "question_zh": "在整个视频中，装有黄色种子的培养皿是否始终是单个、可辨识的培养皿？"
+    },
+    {
+      "qa_id": "q03",
+      "dimension": "Object Consistency",
+      "importance": "critical",
+      "question": "Does the petri dish containing mixed yellow and brown seeds remain a single, identifiable dish throughout the video?",
+      "question_zh": "在整个视频中，装有黄棕色混合种子的培养皿是否始终是单个、可辨识的培养皿？"
+    },
+    {
+      "qa_id": "q04",
+      "dimension": "Object Consistency",
+      "importance": "critical",
+      "question": "Does the empty petri dish that receives TTC solution remain a single, identifiable dish throughout the video?",
+      "question_zh": "在整个视频中，将接收 TTC 溶液的空培养皿是否始终是单个、可辨识的培养皿？"
+    },
+    {
+      "qa_id": "q05",
+      "dimension": "Object Consistency",
+      "importance": "standard",
+      "question": "Do the two empty petri dishes remain visually distinct from each other throughout the video?",
+      "question_zh": "在整个视频中，两个空培养皿在视觉上是否始终彼此区分、互不相同？"
+    },
+    {
+      "qa_id": "q06",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Is TTC solution visibly poured into the dish containing yellow seeds?",
+      "question_zh": "是否可见地将 TTC 溶液倒入装有黄色种子的培养皿中？"
+    },
+    {
+      "qa_id": "q07",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Is TTC solution visibly poured into the dish containing mixed yellow and brown seeds?",
+      "question_zh": "是否可见地将 TTC 溶液倒入装有黄棕色混合种子的培养皿中？"
+    },
+    {
+      "qa_id": "q08",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Is TTC solution visibly poured into one of the empty petri dishes?",
+      "question_zh": "是否可见地将 TTC 溶液倒入其中一个空培养皿中？"
+    },
+    {
+      "qa_id": "q09",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the pour into the yellow-seed dish occur before the pour into the mixed-seed dish?",
+      "question_zh": "倒入黄色种子培养皿是否先于倒入混合种子培养皿而发生？"
+    },
+    {
+      "qa_id": "q10",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the pour into the mixed-seed dish occur before the pour into the empty petri dish?",
+      "question_zh": "倒入混合种子培养皿是否先于倒入空培养皿而发生？"
+    },
+    {
+      "qa_id": "q11",
+      "dimension": "State Correctness",
+      "importance": "critical",
+      "question": "After the pour, does the yellow-seed dish contain a visible pool of amber TTC solution?",
+      "question_zh": "倒入之后，黄色种子培养皿中是否可见一汪琥珀色的 TTC 溶液？"
+    },
+    {
+      "qa_id": "q12",
+      "dimension": "State Correctness",
+      "importance": "critical",
+      "question": "After the pour, does the mixed-seed dish contain a visible pool of amber TTC solution?",
+      "question_zh": "倒入之后，混合种子培养皿中是否可见一汪琥珀色的 TTC 溶液？"
+    },
+    {
+      "qa_id": "q13",
+      "dimension": "State Correctness",
+      "importance": "critical",
+      "question": "After the pour, does the targeted empty petri dish contain a visible pool of amber TTC solution?",
+      "question_zh": "倒入之后，目标空培养皿中是否可见一汪琥珀色的 TTC 溶液？"
+    },
+    {
+      "qa_id": "q14",
+      "dimension": "State Correctness",
+      "importance": "standard",
+      "question": "Does the other empty petri dish remain without any visible TTC solution throughout the video?",
+      "question_zh": "在整个视频中，另一个空培养皿是否始终没有任何可见的 TTC 溶液？"
+    },
+    {
+      "qa_id": "q15",
+      "dimension": "State Correctness",
+      "importance": "standard",
+      "question": "Does the brown-seed dish remain without any visible TTC solution throughout the video?",
+      "question_zh": "在整个视频中，装有棕色种子的培养皿是否始终没有任何可见的 TTC 溶液？"
+    },
+    {
+      "qa_id": "q16",
+      "dimension": "Physical Plausibility",
+      "importance": "standard",
+      "question": "Does the poured TTC solution remain inside the dishes without passing through the dish material or the bench surface?",
+      "question_zh": "倒入的 TTC 溶液是否始终留在培养皿内，不穿过培养皿的材料或实验台表面？"
+    },
+    {
+      "qa_id": "q17",
+      "dimension": "Visual Safety",
+      "importance": "standard",
+      "question": "Does the amber TTC solution avoid spilling onto the laboratory bench or outside the petri dishes during the entire procedure?",
+      "question_zh": "在整个操作过程中，琥珀色 TTC 溶液是否避免洒到实验台上或培养皿外面？"
+    }
+  ]
+}

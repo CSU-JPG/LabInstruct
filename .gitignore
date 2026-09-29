@@ -1,0 +1,47 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- Local artifacts (NOT part of the release) ---
+# Source videos and everything derived from them are never distributed.
+# See data/README.md: the benchmark ships links + annotations only, and these
+# directories are reconstructed locally from the source videos under their
+# own licenses.
+data/source_videos/
+data/video_clips/
+data/first_frames/
+data/tasks.jsonl
+
+# Generated videos, judge traces, and score tables
+outputs/
+eval_res/
+judge_res/
+data/results/
+data/answers_fps*/
+*.log
+
+# Human-eval survey: data.js is rebuilt by `node build_data.mjs` from the
+# specs/checklists above, and the ratings*.json files hold rater responses.
+data/human_eval/data.js
+data/human_eval/ratings*.json
+
+
+# --- Project-page media (NOT part of the release) ---
+# 950 rendered preview assets (~79 MB): the video wall previews, their posters
+# and the per-model video posters. They are rebuilt from the benchmark media by
+# the pipeline described in doc/homepage/README.md, or hosted elsewhere with
+# config.js `mediaBase` pointing at that location.
+doc/homepage/assets/posters/
+doc/homepage/assets/video-posters/
+doc/homepage/assets/videos/

@@ -1,0 +1,73 @@
+{
+  "task_id": "001_L1_001_agronomy",
+  "split": "L1",
+  "domain": "solid_handling",
+  "discipline": "agronomy",
+  "title": "Peeling plant root sample with scalpel",
+  "description": "An operator holds a small plant root segment in their right hand while gripping a scalpel between the thumb and index finger. The operator first passes the scalpel to their left hand, then carefully scrapes the root with the scalpel to peel away the light-colored inner bark.",
+  "initial_image": "../first_frames/001_L1_001_agronomy.jpg",
+  "scene": {
+    "objects": [
+      {
+        "id": "plant_root",
+        "name": "plant root segment",
+        "contents": "N/A",
+        "material": "biological tissue"
+      },
+      {
+        "id": "scalpel",
+        "name": "scalpel",
+        "contents": "N/A",
+        "material": "metal"
+      },
+      {
+        "id": "collection_tube",
+        "name": "plastic collection tube",
+        "contents": "empty",
+        "material": "plastic"
+      }
+    ],
+    "spatial_relations": [
+      "The plant root segment is held in the right hand at the center of the frame.",
+      "The scalpel is initially held in the right hand together with the plant root, gripped by the thumb and index finger, then handed to the left hand.",
+      "The plastic collection tube rests horizontally on the dark bench surface in the foreground."
+    ],
+    "environment": "indoor_laboratory"
+  },
+  "action_sequence": [
+    {
+      "step": 1,
+      "action": "the right hand hands the scalpel to the left hand",
+      "target_object": "scalpel",
+      "contact": "hand_tool",
+      "state_transition": {
+        "from": "the scalpel is held in the operator's right hand by the thumb and index finger",
+        "to": "the scalpel is held in the operator's left hand"
+      }
+    },
+    {
+      "step": 2,
+      "action": "left hand scrapes the plant root with the scalpel",
+      "target_object": "plant_root",
+      "contact": "tool_object",
+      "state_transition": {
+        "from": "the plant root has a light-colored inner bark layer",
+        "to": "the plant root's light-colored inner bark is peeled away"
+      }
+    }
+  ],
+  "prompt_for_gen": "From a nearby observer viewpoint at a dark laboratory bench, an operator wearing a white t-shirt holds a small, brown plant root segment in their right hand, while the thumb and index finger of the same hand hold a scalpel. A clear plastic collection tube rests horizontally on the bench in the foreground. The operator first hands the scalpel to their left hand. Then, with precise, controlled movements, the operator's left hand scrapes the scalpel along the plant root, peeling away its light-colored inner bark.",
+  "difficulty_features": {
+    "number_of_objects": 3,
+    "number_of_action_steps": 2,
+    "requires_liquid_handling": false,
+    "requires_tool_manipulation": true,
+    "requires_fine_motor_control": true,
+    "requires_transparent_object_reasoning": false,
+    "requires_color_tracking": false,
+    "requires_volume_change_detection": false,
+    "requires_spatial_memory": false,
+    "requires_sequential_ordering": false
+  },
+  "viewpoint": "nearby_observer"
+}
