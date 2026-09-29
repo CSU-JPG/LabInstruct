@@ -1,0 +1,147 @@
+{
+  "task_id": "121_L2_013_materials_science",
+  "task_level": "L2",
+  "source_spec": "121_L2_013_materials_science_spec.json",
+  "items": [
+    {
+      "qa_id": "q01",
+      "dimension": "Scene Consistency",
+      "importance": "standard",
+      "question": "Does the camera viewpoint remain steadily at a nearby observer position throughout the video without abrupt shifts or jumps?",
+      "question_zh": "在整个视频中，摄像机视角是否始终稳定地保持在附近观察者的位置，不发生突然的移动或跳动？"
+    },
+    {
+      "qa_id": "q02",
+      "dimension": "Scene Consistency",
+      "importance": "standard",
+      "question": "Does the magnetic stirrer continue to operate in the glass beaker throughout the entire procedure?",
+      "question_zh": "在整个操作过程中，磁力搅拌器是否在玻璃烧杯中持续运转？"
+    },
+    {
+      "qa_id": "q03",
+      "dimension": "Object Consistency",
+      "importance": "critical",
+      "question": "Does the small brown glass bottle remain a single, intact, identifiable bottle for the entire video?",
+      "question_zh": "在整个视频中，棕色小玻璃瓶是否始终是单一、完整、可辨识的瓶子？"
+    },
+    {
+      "qa_id": "q04",
+      "dimension": "Object Consistency",
+      "importance": "standard",
+      "question": "Does the micropipette retrieved from the stand remain one continuous identifiable object after the fresh tip is attached (no splitting, duplication, or morphing)?",
+      "question_zh": "从支架上取下的微量移液器在装上新的吸头之后，是否始终是同一个连续可辨识的对象（不发生分裂、复制或变形）？"
+    },
+    {
+      "qa_id": "q05",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the right hand unscrew and remove the white cap from the brown bottle, exposing its opening?",
+      "question_zh": "右手是否拧下并取下棕色瓶子上的白色瓶盖，露出瓶口？"
+    },
+    {
+      "qa_id": "q06",
+      "dimension": "Action Fidelity",
+      "importance": "standard",
+      "question": "Does the right hand set the white cap aside onto the benchtop?",
+      "question_zh": "右手是否将白色瓶盖放到一旁的工作台台面上？"
+    },
+    {
+      "qa_id": "q07",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the right hand reach to the PBS bottle and unscrew its cap?",
+      "question_zh": "右手是否伸向 PBS 瓶并拧下它的瓶盖？"
+    },
+    {
+      "qa_id": "q08",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the right hand retrieve the untipped micropipette from the pipette stand?",
+      "question_zh": "右手是否从移液器支架上取下未装吸头的微量移液器？"
+    },
+    {
+      "qa_id": "q09",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the operator open the pipette tip box?",
+      "question_zh": "操作者是否打开了移液器吸头盒？"
+    },
+    {
+      "qa_id": "q10",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the operator press the micropipette into a fresh tip so that the tip becomes attached?",
+      "question_zh": "操作者是否将微量移液器按压到一个新吸头上，使吸头被装上？"
+    },
+    {
+      "qa_id": "q11",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Is the fresh pipette tip visibly attached to the micropipette before the pipette tip enters the PBS bottle?",
+      "question_zh": "在移液器吸头进入 PBS 瓶之前，新的吸头是否可见地安装在微量移液器上？"
+    },
+    {
+      "qa_id": "q12",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the pipette with the attached tip enter the opening of the PBS bottle?",
+      "question_zh": "装上吸头的移液器是否进入 PBS 瓶的瓶口？"
+    },
+    {
+      "qa_id": "q13",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the operator draw PBS liquid up into the pipette tip (visible liquid rising)?",
+      "question_zh": "操作者是否将 PBS 液体吸入移液器吸头（可见液面上升）？"
+    },
+    {
+      "qa_id": "q14",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the operator move the pipette from the PBS bottle to a position directly above the open brown bottle?",
+      "question_zh": "操作者是否将移液器从 PBS 瓶移到敞开的棕色瓶的正上方位置？"
+    },
+    {
+      "qa_id": "q15",
+      "dimension": "Action Fidelity",
+      "importance": "critical",
+      "question": "Does the operator dispense the PBS liquid from the pipette into the open brown bottle?",
+      "question_zh": "操作者是否将 PBS 液体从移液器中排出，注入敞开的棕色瓶中？"
+    },
+    {
+      "qa_id": "q16",
+      "dimension": "State Correctness",
+      "importance": "critical",
+      "question": "At the end of the video, is the transferred PBS liquid visibly present inside the brown bottle (e.g., increased liquid volume)?",
+      "question_zh": "在视频结尾，转移到棕色瓶中的 PBS 液体是否可见地存在（例如液体体积增加）？"
+    },
+    {
+      "qa_id": "q17",
+      "dimension": "Physical Plausibility",
+      "importance": "standard",
+      "question": "Does the pipette tip enter the PBS bottle through its opening without clipping through the bottle walls?",
+      "question_zh": "移液器吸头是否从 PBS 瓶的瓶口进入，而没有穿透过瓶壁？"
+    },
+    {
+      "qa_id": "q18",
+      "dimension": "Physical Plausibility",
+      "importance": "standard",
+      "question": "Does the aspirated PBS liquid remain inside the pipette tip during transit to the brown bottle without leaking or dripping?",
+      "question_zh": "在移向棕色瓶的过程中，吸入的 PBS 液体是否始终留在移液器吸头内，不发生渗漏或滴落？"
+    },
+    {
+      "qa_id": "q19",
+      "dimension": "Visual Safety",
+      "importance": "standard",
+      "question": "Does the procedure avoid unintended spillage of PBS or other liquid onto the benchtop or the operator's gloves?",
+      "question_zh": "操作是否避免了 PBS 或其他液体意外洒落到工作台台面或操作者的手套上？"
+    },
+    {
+      "qa_id": "q20",
+      "dimension": "Visual Safety",
+      "importance": "standard",
+      "question": "Do the glass containers (the brown bottle and the glass beaker) remain intact without breakage throughout the video?",
+      "question_zh": "在整个视频中，玻璃容器（棕色瓶和玻璃烧杯）是否保持完好，不发生破损？"
+    }
+  ]
+}
