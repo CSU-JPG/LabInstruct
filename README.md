@@ -8,7 +8,7 @@
 
 <div align="center">
 
-🌐 [Homepage](https://csu-jpg.github.io/LabInstruct.github.io/) | 👉 [Dataset](#repository-structure) | 📄 Paper (coming soon) | 💻 [Code](https://github.com/CSU-JPG/LabInstruct) | 🏆 [Leaderboard](#leaderboard)
+🌐 [Homepage](https://csu-jpg.github.io/LabInstruct.github.io/) | 👉 [Dataset](https://huggingface.co/datasets/CSU-JPG/LabInstruct) | 📄 Paper (coming soon) | 💻 [Code](https://github.com/CSU-JPG/LabInstruct) | 🏆 [Leaderboard](#leaderboard)
 
 </div>
 
@@ -137,7 +137,7 @@ python scripts/judge_videos_gpt.py --model-name all --fps 4
 
 
 > [!IMPORTANT]
-> This repository ships two example tasks. The complete set of 204 task specifications and 204 QA checklists is released as a dataset on Hugging Face. LabInstruct releases links and annotations only. Third-party source videos, extracted clips, and first frames must be obtained or reconstructed under their original terms.
+> This repository ships two example tasks. The complete set of 204 task specifications and 204 QA checklists is released as a dataset on [Hugging Face](https://huggingface.co/datasets/CSU-JPG/LabInstruct). LabInstruct releases links and annotations only. Third-party source videos, extracted clips, and first frames must be obtained or reconstructed under their original terms.
 
 <a id="leaderboard"></a>
 
