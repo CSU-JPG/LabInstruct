@@ -8,7 +8,7 @@
 
 <div align="center">
 
-🌐 [Homepage](https://csu-jpg.github.io/LabInstruct.github.io/) | 👉 [Dataset](https://huggingface.co/datasets/CSU-JPG/LabInstruct) | 📄 Paper (coming soon) | 💻 [Code](https://github.com/CSU-JPG/LabInstruct) | 🏆 [Leaderboard](#leaderboard)
+🌐 [Homepage](https://csu-jpg.github.io/LabInstruct.github.io/) | 👉 [Dataset](https://huggingface.co/datasets/CSU-JPG/LabInstruct) | 📄 [Paper](https://arxiv.org/abs/2610.14020) | 💻 [Code](https://github.com/CSU-JPG/LabInstruct) | 🏆 [Leaderboard](#leaderboard)
 
 </div>
 
@@ -171,10 +171,10 @@ If you find our work helpful, please consider citing it:
   title         = {LabInstruct: Benchmarking Situated Instructional Video Generation for Lab Procedures},
   author        = {Yuming Fu and Weijia Wu and Jing Chen and Jiahao Tang and Feifei Chen and Hongyu Zhu and Xin Jin and Alex Jinpeng Wang},
   year          = {2026},
-  eprint        = {XXXX.XXXXX},
+  eprint        = {2610.14020},
   archivePrefix = {arXiv},
   primaryClass  = {cs.CV},
-  url           = {https://arxiv.org/abs/XXXX.XXXXX}
+  url           = {https://arxiv.org/abs/2610.14020}
 ```
 
 <a id="contact"></a>
