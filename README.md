@@ -147,18 +147,21 @@ python scripts/judge_videos_gpt.py --model-name all --fps 4
 
 ## 🏆 Leaderboard
 
-Pooled Overall is evaluated by GPT-5.6 Sol at 4 FPS. Higher is better; † marks commercial models.
+GPT-5.6 Sol is evaluated at 4 FPS; Human is the pooled overall human rating. Higher is better; † marks commercial models.
 
-| Rank | Model | Type | Organization | Pooled Overall |
-| :--: | :-- | :-- | :-- | --: |
-| **1** | **MiniMax H3** | Open weight | MiniMax | **46.3** |
-| 2 | Seedance 2.0 † | Commercial | ByteDance | 45.1 |
-| 3 | Wan 3.0 † | Commercial | Alibaba | 44.4 |
-| 4 | Wan 2.2-I2V-A14B | Open weight | Alibaba | 25.9 |
-| 5 | Cosmos3 Super | Open weight | NVIDIA | 22.8 |
-| 6 | LTX 2.3 | Open weight | Lightricks | 22.1 |
-| 7 | LingBot Video | Open weight | Robbyant | 19.5 |
-| 8 | Cosmos3 Nano | Open weight | NVIDIA | 19.4 |
+| Rank | Model | Type | Organization | GPT-5.6 Sol | Human | Tier |
+| :--: | :-- | :-- | :-- | --: | --: | :--: |
+| **1** | **MiniMax H3** | Open weight | MiniMax | **46.3** | **44.3** | **T0** |
+| 2 | Seedance 2.0 † | Commercial | ByteDance | 45.1 | 43.0 | T0 |
+| 3 | Wan 3.0 † | Commercial | Alibaba | 44.4 | 37.3 | T0 |
+| 4 | Wan 2.2-I2V-A14B | Open weight | Alibaba | 25.9 | 15.4 | T1 |
+| 5 | Cosmos3 Super | Open weight | NVIDIA | 22.8 | 11.5 | T1 |
+| 6 | LTX 2.3 | Open weight | Lightricks | 22.1 | 3.0 | T2 |
+| 7 | LingBot Video | Open weight | Robbyant | 19.5 | 10.5 | T2 |
+| 8 | Cosmos3 Nano | Open weight | NVIDIA | 19.4 | 5.8 | T2 |
+
+> [!NOTE]
+> Model rankings shift slightly across evaluation views, evaluators, sampling rates, and generation seeds, so we also report a Tier to keep the comparison robust.
 
 <a id="bibtex"></a>
 
