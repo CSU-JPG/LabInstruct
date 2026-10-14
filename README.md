@@ -173,7 +173,7 @@ If you find our work helpful, please consider citing it:
   year          = {2026},
   eprint        = {2610.14020},
   archivePrefix = {arXiv},
-  primaryClass  = {cs.CV},
+  primaryClass  = {cs.RO},
   url           = {https://arxiv.org/abs/2610.14020}
 ```
 
